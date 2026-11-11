@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Smart Student Engagement AI</title>
 
 <style>
@@ -14,6 +15,7 @@ body {
   padding: 15px;
   margin: 0;
 }
+
 .card {
   background: white;
   max-width: 480px;
@@ -22,6 +24,7 @@ body {
   border-radius: 14px;
   box-shadow: 0 2px 8px #0001;
 }
+
 button {
   padding: 12px 16px;
   margin: 5px;
@@ -31,7 +34,11 @@ button {
   color: white;
   font-size: 15px;
 }
-button:disabled { opacity: 0.5; }
+
+button:disabled {
+  opacity: 0.5;
+}
+
 video {
   width: 100%;
   max-width: 400px;
@@ -39,12 +46,17 @@ video {
   transform: scaleX(-1);
   background: #222;
 }
+
 .status {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: bold;
   margin: 12px;
 }
-.small { color: #555; font-size: 14px; }
+
+.small {
+  color: #555;
+  font-size: 14px;
+}
 </style>
 </head>
 
@@ -53,140 +65,260 @@ video {
 <h2>AI-Powered Student Engagement Recovery</h2>
 
 <div class="card">
-  <h3>1. Connect ESP32 Bluetooth</h3>
-  <button id="connectBtn">CONNECT ESP32</button>
-  <p id="bleStatus">Bluetooth: Not connected</p>
+
+<h3>1. Bluetooth Connection</h3>
+
+<button id="connectBtn">
+CONNECT ESP32
+</button>
+
+<p id="bleStatus">Bluetooth: Not connected</p>
+
 </div>
 
 <div class="card">
-  <h3>2. Student Camera</h3>
-  <video id="video" autoplay playsinline muted></video>
-  <br>
-  <button id="startBtn">START CAMERA AI</button>
-  <button id="stopBtn" disabled>STOP CAMERA</button>
-  <p id="cameraStatus">Camera: Not started</p>
+
+<h3>2. Student Camera</h3>
+
+<video id="video" autoplay playsinline muted></video>
+
+<br>
+
+<button id="startBtn">
+START CAMERA AI
+</button>
+
+<button id="stopBtn" disabled>
+STOP CAMERA
+</button>
+
+<p id="cameraStatus">Camera: Not started</p>
+
 </div>
 
 <div class="card">
-  <h3>3. AI Detection Result</h3>
-  <div class="status" id="direction">WAITING</div>
-  <p id="detail">Connect Bluetooth and start the camera.</p>
-  <p class="small">A sustained head turn will cause a recovery prompt on the ESP32.</p>
+
+<h3>3. AI Detection</h3>
+
+<div class="status" id="direction">
+WAITING
+</div>
+
+<p id="detail">
+Connect ESP32 and start camera.
+</p>
+
 </div>
 
 <div class="card">
-  <h3>4. System Instructions</h3>
-  <p>Look towards the camera to show FORWARD.</p>
-  <p>Turn your head to the left or right to test direction detection.</p>
-  <p>Keep the direction for at least 5 seconds to trigger a recovery offer.</p>
+
+<h3>4. How to Test</h3>
+
+<p>Look straight at the camera: FORWARD</p>
+<p>Turn your head left: LEFT</p>
+<p>Turn your head right: RIGHT</p>
+<p>Keep a turn for 5 seconds to offer a recovery activity.</p>
+
 </div>
 
 <script type="module">
+
 import {
   FaceLandmarker,
   FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 
+// SAME UUIDs AS ESP32
 const SERVICE_UUID =
   "12345678-1234-1234-1234-123456789000";
 
 const CHARACTERISTIC_UUID =
   "12345678-1234-1234-1234-123456789001";
 
+// HTML ELEMENTS
 const video = document.getElementById("video");
-const directionText = document.getElementById("direction");
-const detailText = document.getElementById("detail");
-const bleStatus = document.getElementById("bleStatus");
-const cameraStatus = document.getElementById("cameraStatus");
 
+const directionText =
+  document.getElementById("direction");
+
+const detailText =
+  document.getElementById("detail");
+
+const bleStatus =
+  document.getElementById("bleStatus");
+
+const cameraStatus =
+  document.getElementById("cameraStatus");
+
+// VARIABLES
 let bleDevice = null;
 let bleCharacteristic = null;
+
 let faceLandmarker = null;
 let cameraStream = null;
+
 let cameraRunning = false;
 let lastVideoTime = -1;
+
 let lastSentDirection = "";
+let sendingDirection = "";
+let pendingDirection = "";
+
+// ---------------- BLE CONNECT ----------------
 
 async function connectBLE() {
+
   try {
+
     bleStatus.textContent = "Searching for ESP32...";
 
     bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [{ name: "STUDENT_ENGAGEMENT" }],
+      filters: [
+        { name: "STUDENT_ENGAGEMENT" }
+      ],
       optionalServices: [SERVICE_UUID]
     });
 
-    bleDevice.addEventListener("gattserverdisconnected", () => {
-      bleCharacteristic = null;
-      bleStatus.textContent = "Bluetooth disconnected";
-    });
+    bleDevice.addEventListener(
+      "gattserverdisconnected",
+      () => {
+
+        bleCharacteristic = null;
+
+        bleStatus.textContent =
+          "Bluetooth disconnected";
+      }
+    );
 
     const server = await bleDevice.gatt.connect();
-    const service = await server.getPrimaryService(SERVICE_UUID);
+
+    const service =
+      await server.getPrimaryService(SERVICE_UUID);
 
     bleCharacteristic =
       await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-    bleStatus.textContent = "Bluetooth: ESP32 connected";
-    detailText.textContent = "Bluetooth connection successful.";
+    bleStatus.textContent =
+      "Bluetooth: ESP32 connected";
+
+    detailText.textContent =
+      "Bluetooth connection successful.";
+
   }
+
   catch (error) {
-    bleStatus.textContent = "Bluetooth error: " + error.message;
+
+    bleStatus.textContent =
+      "Bluetooth error: " + error.message;
   }
 }
 
+// ---------------- SEND BLE MESSAGE ----------------
+
 async function sendDirection(direction) {
+
   if (!bleCharacteristic) {
-    detailText.textContent = "Connect ESP32 Bluetooth first.";
     return;
   }
 
-  if (direction === lastSentDirection) return;
-
-  try {
-    const data = new TextEncoder().encode(direction);
-    await bleCharacteristic.writeValue(data);
-    lastSentDirection = direction;
-    detailText.textContent = "Sent to ESP32: " + direction;
+  if (direction === lastSentDirection ||
+      direction === sendingDirection) {
+    return;
   }
-  catch (error) {
-    detailText.textContent = "BLE send error: " + error.message;
+
+  // Keep the latest direction if another write is in progress.
+  pendingDirection = direction;
+
+  if (sendingDirection !== "") {
+    return;
+  }
+
+  while (pendingDirection !== "") {
+
+    const message = pendingDirection;
+
+    pendingDirection = "";
+    sendingDirection = message;
+
+    try {
+
+      const data =
+        new TextEncoder().encode(message);
+
+      await bleCharacteristic.writeValue(data);
+
+      lastSentDirection = message;
+
+      detailText.textContent =
+        "Sent to ESP32: " + message;
+
+    }
+
+    catch (error) {
+
+      detailText.textContent =
+        "BLE send error: " + error.message;
+
+      pendingDirection = "";
+    }
+
+    finally {
+
+      sendingDirection = "";
+    }
   }
 }
 
+// ---------------- START CAMERA ----------------
+
 async function startCamera() {
+
   try {
+
     if (!bleCharacteristic) {
+
       alert("First connect ESP32 Bluetooth.");
+
       return;
     }
 
-    cameraStatus.textContent = "Loading AI model...";
+    cameraStatus.textContent =
+      "Loading AI model...";
 
-    const vision = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-    );
+    // LOAD MEDIAPIPE
+    const vision =
+      await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+      );
 
-    faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath:
-          "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate: "CPU"
-      },
-      runningMode: "VIDEO",
-      numFaces: 1
-    });
+    faceLandmarker =
+      await FaceLandmarker.createFromOptions(
+        vision,
+        {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            delegate: "CPU"
+          },
 
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "user",
-        width: { ideal: 640 },
-        height: { ideal: 480 }
-      },
-      audio: false
-    });
+          runningMode: "VIDEO",
+          numFaces: 1
+        }
+      );
+
+    // OPEN FRONT CAMERA
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        },
+        audio: false
+      });
 
     video.srcObject = cameraStream;
+
     await video.play();
 
     cameraRunning = true;
@@ -195,54 +327,89 @@ async function startCamera() {
     document.getElementById("startBtn").disabled = true;
     document.getElementById("stopBtn").disabled = false;
 
-    cameraStatus.textContent = "Camera AI: Running";
+    cameraStatus.textContent =
+      "Camera AI: Running";
+
+    // Send an initial direction.
+    lastSentDirection = "";
+    await sendDirection("NO_FACE");
+
     detectFrame();
+
   }
+
   catch (error) {
-    cameraStatus.textContent = "Camera/AI error: " + error.message;
+
+    cameraStatus.textContent =
+      "Camera/AI error: " + error.message;
+
+    console.error(error);
   }
 }
 
-function detectFrame() {
-  if (!cameraRunning || !faceLandmarker) return;
+// ---------------- AI DETECTION ----------------
 
-  if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
+function detectFrame() {
+
+  if (!cameraRunning || !faceLandmarker) {
+    return;
+  }
+
+  if (video.readyState >= 2 &&
+      video.currentTime !== lastVideoTime) {
+
     lastVideoTime = video.currentTime;
 
-    const result = faceLandmarker.detectForVideo(
-      video,
-      performance.now()
-    );
+    const result =
+      faceLandmarker.detectForVideo(
+        video,
+        performance.now()
+      );
 
-    if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
+    // NO FACE
+    if (!result.faceLandmarks ||
+        result.faceLandmarks.length === 0) {
+
       directionText.textContent = "NO FACE";
+
       sendDirection("NO_FACE");
     }
+
     else {
-      const landmarks = result.faceLandmarks[0];
+
+      const landmarks =
+        result.faceLandmarks[0];
 
       const nose = landmarks[1];
+
       const eyeLeft = landmarks[33];
       const eyeRight = landmarks[263];
 
-      const eyeMiddle = (eyeLeft.x + eyeRight.x) / 2;
-      const eyeDistance = Math.abs(eyeRight.x - eyeLeft.x);
+      const eyeMiddle =
+        (eyeLeft.x + eyeRight.x) / 2;
+
+      const eyeDistance =
+        Math.abs(eyeRight.x - eyeLeft.x);
 
       const difference =
-        (nose.x - eyeMiddle) / Math.max(eyeDistance, 0.001);
+        (nose.x - eyeMiddle) /
+        Math.max(eyeDistance, 0.001);
 
       let direction = "FORWARD";
 
-      // These labels follow the direction calibration
-      // used in the previous Step 5 version.
+      // Direction calibration from Step 5.
       if (difference > 0.18) {
+
         direction = "LEFT";
       }
+
       else if (difference < -0.18) {
+
         direction = "RIGHT";
       }
 
       directionText.textContent = direction;
+
       sendDirection(direction);
     }
   }
@@ -250,32 +417,61 @@ function detectFrame() {
   requestAnimationFrame(detectFrame);
 }
 
+// ---------------- STOP CAMERA ----------------
+
 function stopCamera() {
+
   cameraRunning = false;
 
   if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
+
+    cameraStream.getTracks().forEach(
+      track => track.stop()
+    );
+
     cameraStream = null;
   }
 
   video.srcObject = null;
-  cameraStatus.textContent = "Camera stopped";
+
+  cameraStatus.textContent =
+    "Camera stopped";
+
+  directionText.textContent =
+    "STOPPED";
 
   document.getElementById("startBtn").disabled = false;
   document.getElementById("stopBtn").disabled = true;
 
-  directionText.textContent = "STOPPED";
   sendDirection("NO_FACE");
 }
 
-document.getElementById("connectBtn").addEventListener("click", connectBLE);
-document.getElementById("startBtn").addEventListener("click", startCamera);
-document.getElementById("stopBtn").addEventListener("click", stopCamera);
+// ---------------- BUTTON EVENTS ----------------
 
-if (!("bluetooth" in navigator)) {
+document.getElementById("connectBtn")
+  .addEventListener("click", connectBLE);
+
+document.getElementById("startBtn")
+  .addEventListener("click", startCamera);
+
+document.getElementById("stopBtn")
+  .addEventListener("click", stopCamera);
+
+// ---------------- BROWSER CHECK ----------------
+
+if (!navigator.bluetooth) {
+
   bleStatus.textContent =
-    "Web Bluetooth is not available in this browser.";
+    "Web Bluetooth unavailable. Use Android Chrome with HTTPS.";
 }
+
+if (!navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia) {
+
+  cameraStatus.textContent =
+    "Camera unavailable. Open the HTTPS webpage.";
+}
+
 </script>
 
 </body>
