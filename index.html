@@ -1,330 +1,281 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Smart Student Engagement AI</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  text-align: center;
   background: #eef3f8;
-  padding: 12px;
+  text-align: center;
+  padding: 15px;
+  margin: 0;
 }
-
-h2 {
-  color: #123b61;
-}
-
 .card {
   background: white;
-  padding: 15px;
-  margin: 12px auto;
-  max-width: 450px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px #bbb;
+  max-width: 480px;
+  margin: 14px auto;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px #0001;
 }
-
-video {
-  width: 100%;
-  border-radius: 10px;
-  background: black;
-  transform: scaleX(-1);
-}
-
 button {
-  padding: 14px;
-  width: 90%;
-  margin: 8px;
-  border: none;
+  padding: 12px 16px;
+  margin: 5px;
+  border: 0;
   border-radius: 8px;
   background: #1769aa;
   color: white;
-  font-size: 17px;
-}
-
-#status {
-  font-size: 22px;
-  font-weight: bold;
-  color: #1769aa;
-}
-
-#details {
-  color: #555;
   font-size: 15px;
 }
+button:disabled { opacity: 0.5; }
+video {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  transform: scaleX(-1);
+  background: #222;
+}
+.status {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 12px;
+}
+.small { color: #555; font-size: 14px; }
 </style>
 </head>
 
 <body>
 
-<h2>SMART STUDENT ENGAGEMENT</h2>
-<p>Mobile Camera AI Monitoring</p>
+<h2>AI-Powered Student Engagement Recovery</h2>
 
 <div class="card">
-
-  <video id="video"
-         autoplay
-         playsinline
-         muted>
-  </video>
-
-  <button id="startButton">
-    START CAMERA AI
-  </button>
-
-  <button id="stopButton">
-    STOP CAMERA
-  </button>
-
+  <h3>1. Connect ESP32 Bluetooth</h3>
+  <button id="connectBtn">CONNECT ESP32</button>
+  <p id="bleStatus">Bluetooth: Not connected</p>
 </div>
 
 <div class="card">
+  <h3>2. Student Camera</h3>
+  <video id="video" autoplay playsinline muted></video>
+  <br>
+  <button id="startBtn">START CAMERA AI</button>
+  <button id="stopBtn" disabled>STOP CAMERA</button>
+  <p id="cameraStatus">Camera: Not started</p>
+</div>
 
-  <h3>AI Detection Result</h3>
+<div class="card">
+  <h3>3. AI Detection Result</h3>
+  <div class="status" id="direction">WAITING</div>
+  <p id="detail">Connect Bluetooth and start the camera.</p>
+  <p class="small">A sustained head turn will cause a recovery prompt on the ESP32.</p>
+</div>
 
-  <p id="status">WAITING</p>
-
-  <p id="details">
-    Press Start Camera AI
-  </p>
-
+<div class="card">
+  <h3>4. System Instructions</h3>
+  <p>Look towards the camera to show FORWARD.</p>
+  <p>Turn your head to the left or right to test direction detection.</p>
+  <p>Keep the direction for at least 5 seconds to trigger a recovery offer.</p>
 </div>
 
 <script type="module">
-
 import {
   FaceLandmarker,
   FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 
+const SERVICE_UUID =
+  "12345678-1234-1234-1234-123456789000";
+
+const CHARACTERISTIC_UUID =
+  "12345678-1234-1234-1234-123456789001";
+
 const video = document.getElementById("video");
+const directionText = document.getElementById("direction");
+const detailText = document.getElementById("detail");
+const bleStatus = document.getElementById("bleStatus");
+const cameraStatus = document.getElementById("cameraStatus");
 
-const statusText =
-  document.getElementById("status");
-
-const details =
-  document.getElementById("details");
-
-const startButton =
-  document.getElementById("startButton");
-
-const stopButton =
-  document.getElementById("stopButton");
-
-let cameraStream = null;
+let bleDevice = null;
+let bleCharacteristic = null;
 let faceLandmarker = null;
-
-let running = false;
+let cameraStream = null;
+let cameraRunning = false;
 let lastVideoTime = -1;
+let lastSentDirection = "";
 
-// ---------------------------------
-// START AI
-// ---------------------------------
-
-async function startAI() {
-
+async function connectBLE() {
   try {
+    bleStatus.textContent = "Searching for ESP32...";
 
-    statusText.innerText = "LOADING AI";
-    details.innerText = "Please wait...";
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ name: "STUDENT_ENGAGEMENT" }],
+      optionalServices: [SERVICE_UUID]
+    });
 
-    const vision =
-      await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-      );
+    bleDevice.addEventListener("gattserverdisconnected", () => {
+      bleCharacteristic = null;
+      bleStatus.textContent = "Bluetooth disconnected";
+    });
 
-    faceLandmarker =
-      await FaceLandmarker.createFromOptions(
-        vision,
-        {
-          baseOptions: {
-            modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+    const server = await bleDevice.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
 
-            delegate: "CPU"
-          },
+    bleCharacteristic =
+      await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-          runningMode: "VIDEO",
-          numFaces: 1
-        }
-      );
-
-    // Open front camera
-    cameraStream =
-      await navigator.mediaDevices.getUserMedia({
-
-        video: {
-          facingMode: "user",
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        },
-
-        audio: false
-      });
-
-    video.srcObject = cameraStream;
-
-    await video.play();
-
-    running = true;
-    lastVideoTime = -1;
-
-    statusText.innerText = "CAMERA ACTIVE";
-
-    details.innerText = "Looking for one face";
-
-    detectFrame();
-
+    bleStatus.textContent = "Bluetooth: ESP32 connected";
+    detailText.textContent = "Bluetooth connection successful.";
   }
-
-  catch(error) {
-
-    statusText.innerText = "CAMERA ERROR";
-
-    details.innerText =
-      error.name + ": " + error.message;
-
-    console.error(error);
-
+  catch (error) {
+    bleStatus.textContent = "Bluetooth error: " + error.message;
   }
 }
 
-// ---------------------------------
-// FACE DETECTION
-// ---------------------------------
+async function sendDirection(direction) {
+  if (!bleCharacteristic) {
+    detailText.textContent = "Connect ESP32 Bluetooth first.";
+    return;
+  }
+
+  if (direction === lastSentDirection) return;
+
+  try {
+    const data = new TextEncoder().encode(direction);
+    await bleCharacteristic.writeValue(data);
+    lastSentDirection = direction;
+    detailText.textContent = "Sent to ESP32: " + direction;
+  }
+  catch (error) {
+    detailText.textContent = "BLE send error: " + error.message;
+  }
+}
+
+async function startCamera() {
+  try {
+    if (!bleCharacteristic) {
+      alert("First connect ESP32 Bluetooth.");
+      return;
+    }
+
+    cameraStatus.textContent = "Loading AI model...";
+
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+    );
+
+    faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath:
+          "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+        delegate: "CPU"
+      },
+      runningMode: "VIDEO",
+      numFaces: 1
+    });
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "user",
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+      },
+      audio: false
+    });
+
+    video.srcObject = cameraStream;
+    await video.play();
+
+    cameraRunning = true;
+    lastVideoTime = -1;
+
+    document.getElementById("startBtn").disabled = true;
+    document.getElementById("stopBtn").disabled = false;
+
+    cameraStatus.textContent = "Camera AI: Running";
+    detectFrame();
+  }
+  catch (error) {
+    cameraStatus.textContent = "Camera/AI error: " + error.message;
+  }
+}
 
 function detectFrame() {
+  if (!cameraRunning || !faceLandmarker) return;
 
-  if (!running) return;
-
-  if (
-    video.readyState >= 2 &&
-    video.currentTime !== lastVideoTime
-  ) {
-
+  if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
 
-    const result =
-      faceLandmarker.detectForVideo(
-        video,
-        performance.now()
-      );
+    const result = faceLandmarker.detectForVideo(
+      video,
+      performance.now()
+    );
 
-    if (result.faceLandmarks.length > 0) {
+    if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
+      directionText.textContent = "NO FACE";
+      sendDirection("NO_FACE");
+    }
+    else {
+      const landmarks = result.faceLandmarks[0];
 
-      const face =
-        result.faceLandmarks[0];
+      const nose = landmarks[1];
+      const eyeLeft = landmarks[33];
+      const eyeRight = landmarks[263];
 
-      // Face landmarks
-      const nose = face[1];
-
-      const leftEye = face[33];
-
-      const rightEye = face[263];
-
-      const eyeMiddle =
-        (leftEye.x + rightEye.x) / 2;
-
-      const eyeDistance =
-        Math.abs(rightEye.x - leftEye.x);
+      const eyeMiddle = (eyeLeft.x + eyeRight.x) / 2;
+      const eyeDistance = Math.abs(eyeRight.x - eyeLeft.x);
 
       const difference =
-        (nose.x - eyeMiddle) / eyeDistance;
+        (nose.x - eyeMiddle) / Math.max(eyeDistance, 0.001);
 
-      // CORRECTED LEFT / RIGHT
+      let direction = "FORWARD";
+
+      // These labels follow the direction calibration
+      // used in the previous Step 5 version.
       if (difference > 0.18) {
-
-        statusText.innerText =
-          "HEAD TURNED";
-
-        details.innerText =
-          "Head direction: LEFT";
-
+        direction = "LEFT";
       }
-
       else if (difference < -0.18) {
-
-        statusText.innerText =
-          "HEAD TURNED";
-
-        details.innerText =
-          "Head direction: RIGHT";
-
+        direction = "RIGHT";
       }
 
-      else {
-
-        statusText.innerText =
-          "FACING FORWARD";
-
-        details.innerText =
-          "Face is approximately forward";
-
-      }
-
+      directionText.textContent = direction;
+      sendDirection(direction);
     }
-
-    else {
-
-      statusText.innerText =
-        "NO FACE DETECTED";
-
-      details.innerText =
-        "Position one face in front of camera";
-
-    }
-
   }
 
   requestAnimationFrame(detectFrame);
-
 }
 
-// ---------------------------------
-// STOP CAMERA
-// ---------------------------------
-
-function stopAI() {
-
-  running = false;
+function stopCamera() {
+  cameraRunning = false;
 
   if (cameraStream) {
-
-    cameraStream.getTracks().forEach(
-      track => track.stop()
-    );
-
+    cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
-
   }
 
   video.srcObject = null;
+  cameraStatus.textContent = "Camera stopped";
 
-  statusText.innerText =
-    "CAMERA STOPPED";
+  document.getElementById("startBtn").disabled = false;
+  document.getElementById("stopBtn").disabled = true;
 
-  details.innerText =
-    "Press Start to test again";
-
+  directionText.textContent = "STOPPED";
+  sendDirection("NO_FACE");
 }
 
-// ---------------------------------
-// BUTTON EVENTS
-// ---------------------------------
+document.getElementById("connectBtn").addEventListener("click", connectBLE);
+document.getElementById("startBtn").addEventListener("click", startCamera);
+document.getElementById("stopBtn").addEventListener("click", stopCamera);
 
-startButton.addEventListener(
-  "click",
-  startAI
-);
-
-stopButton.addEventListener(
-  "click",
-  stopAI
-);
-
+if (!("bluetooth" in navigator)) {
+  bleStatus.textContent =
+    "Web Bluetooth is not available in this browser.";
+}
 </script>
 
 </body>
