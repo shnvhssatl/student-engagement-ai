@@ -1,123 +1,148 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Smart Student Engagement AI</title>
+<title>Smart Student Engagement Recovery</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #eef3f8;
+  background: #edf3f9;
   text-align: center;
-  padding: 15px;
   margin: 0;
+  padding: 15px;
+  color: #183047;
 }
 
 .card {
   background: white;
-  max-width: 480px;
+  padding: 18px;
   margin: 14px auto;
-  padding: 16px;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px #0001;
+  border-radius: 15px;
+  max-width: 440px;
+  box-shadow: 0 3px 12px #0001;
 }
 
 button {
-  padding: 12px 16px;
+  padding: 13px;
   margin: 5px;
-  border: 0;
-  border-radius: 8px;
+  width: 90%;
+  border: none;
+  border-radius: 9px;
   background: #1769aa;
   color: white;
-  font-size: 15px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
-button:disabled {
-  opacity: 0.5;
+.answer {
+  width: 43%;
+  background: #e4efff;
+  color: #183047;
+  border: 2px solid #b7cce8;
+  font-weight: bold;
 }
 
-video {
+.answer.selected {
+  background: #1769aa;
+  color: white;
+}
+
+#video {
   width: 100%;
-  max-width: 400px;
+  max-width: 360px;
   border-radius: 12px;
   transform: scaleX(-1);
-  background: #222;
 }
 
-.status {
-  font-size: 24px;
+#quizBox {
+  display: none;
+}
+
+#message {
   font-weight: bold;
-  margin: 12px;
-}
-
-.small {
-  color: #555;
-  font-size: 14px;
+  color: #1769aa;
+  padding: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>AI-Powered Student Engagement Recovery</h2>
+<h2>Smart Student Engagement</h2>
+<p>AI-Powered Recovery System</p>
 
 <div class="card">
 
-<h3>1. Bluetooth Connection</h3>
+<h3>Bluetooth Connection</h3>
+<p id="bleStatus">Not connected</p>
 
-<button id="connectBtn">
+<button onclick="connectESP32()">
 CONNECT ESP32
 </button>
 
-<p id="bleStatus">Bluetooth: Not connected</p>
-
 </div>
 
 <div class="card">
 
-<h3>2. Student Camera</h3>
+<h3>Student AI Camera</h3>
 
 <video id="video" autoplay playsinline muted></video>
 
-<br>
+<p id="direction">Direction: WAITING</p>
 
-<button id="startBtn">
+<button onclick="startCamera()">
 START CAMERA AI
 </button>
 
-<button id="stopBtn" disabled>
+<button onclick="stopCamera()">
 STOP CAMERA
 </button>
 
-<p id="cameraStatus">Camera: Not started</p>
-
 </div>
 
 <div class="card">
 
-<h3>3. AI Detection</h3>
+<h3>Student Performance</h3>
 
-<div class="status" id="direction">
-WAITING
-</div>
+<h2 id="score">Score: 70</h2>
 
-<p id="detail">
-Connect ESP32 and start camera.
-</p>
+<p id="engagement">Status: WAITING</p>
+
+<p id="quizCount">Quiz count: 0</p>
 
 </div>
 
-<div class="card">
+<div class="card" id="quizBox">
 
-<h3>4. How to Test</h3>
+<h2>Recovery Quiz</h2>
 
-<p>Look straight at the camera: FORWARD</p>
-<p>Turn your head left: LEFT</p>
-<p>Turn your head right: RIGHT</p>
-<p>Keep a turn for 5 seconds to offer a recovery activity.</p>
+<p id="questionNumber">Question 1</p>
+
+<h3 id="question">What is 2 × 10?</h3>
+
+<button class="answer" onclick="selectAnswer('A')">
+A. 10
+</button>
+
+<button class="answer" onclick="selectAnswer('B')">
+B. 20
+</button>
+
+<button class="answer" onclick="selectAnswer('C')">
+C. 30
+</button>
+
+<button class="answer" onclick="selectAnswer('D')">
+D. 40
+</button>
+
+<p id="message">Select your answer</p>
+
+<button onclick="submitAnswer()">
+SUBMIT ANSWER
+</button>
 
 </div>
 
@@ -128,185 +153,216 @@ import {
   FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 
-// SAME UUIDs AS ESP32
 const SERVICE_UUID =
-  "12345678-1234-1234-1234-123456789000";
+"12345678-1234-1234-1234-123456789000";
 
 const CHARACTERISTIC_UUID =
-  "12345678-1234-1234-1234-123456789001";
+"12345678-1234-1234-1234-123456789001";
 
-// HTML ELEMENTS
-const video = document.getElementById("video");
-
-const directionText =
-  document.getElementById("direction");
-
-const detailText =
-  document.getElementById("detail");
-
-const bleStatus =
-  document.getElementById("bleStatus");
-
-const cameraStatus =
-  document.getElementById("cameraStatus");
-
-// VARIABLES
-let bleDevice = null;
-let bleCharacteristic = null;
-
-let faceLandmarker = null;
-let cameraStream = null;
-
+let device;
+let characteristic;
+let faceLandmarker;
+let cameraStream;
 let cameraRunning = false;
+
+let selectedAnswer = "";
+let quizActive = false;
+let score = 70;
+let quizCount = 0;
+
+let lastDirection = "";
+let lastSentDirection = "";
+let lastSendTime = 0;
 let lastVideoTime = -1;
 
-let lastSentDirection = "";
-let sendingDirection = "";
-let pendingDirection = "";
+let pendingWrite = Promise.resolve();
 
-// ---------------- BLE CONNECT ----------------
+const video = document.getElementById("video");
 
-async function connectBLE() {
+const questions = [
+  {
+    question: "What is 2 x 10?",
+    options: ["10", "20", "30", "40"],
+    correct: "B"
+  },
+  {
+    question: "What is 5 + 7?",
+    options: ["10", "11", "12", "13"],
+    correct: "C"
+  },
+  {
+    question: "What is 9 x 3?",
+    options: ["18", "21", "27", "30"],
+    correct: "C"
+  },
+  {
+    question: "What is 20 / 4?",
+    options: ["4", "5", "6", "8"],
+    correct: "B"
+  },
+  {
+    question: "Which planet is our home?",
+    options: ["Mars", "Earth", "Venus", "Jupiter"],
+    correct: "B"
+  }
+];
+
+let questionIndex = 0;
+
+// BLUETOOTH CONNECT
+window.connectESP32 = async function() {
 
   try {
 
-    bleStatus.textContent = "Searching for ESP32...";
+    if (!navigator.bluetooth) {
+      alert("Please use Android Chrome with Bluetooth enabled.");
+      return;
+    }
 
-    bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [
-        { name: "STUDENT_ENGAGEMENT" }
-      ],
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{
+        name: "STUDENT_ENGAGEMENT"
+      }],
       optionalServices: [SERVICE_UUID]
     });
 
-    bleDevice.addEventListener(
-      "gattserverdisconnected",
-      () => {
+    document.getElementById("bleStatus").innerText =
+      "Connecting...";
 
-        bleCharacteristic = null;
-
-        bleStatus.textContent =
-          "Bluetooth disconnected";
-      }
-    );
-
-    const server = await bleDevice.gatt.connect();
+    const server = await device.gatt.connect();
 
     const service =
       await server.getPrimaryService(SERVICE_UUID);
 
-    bleCharacteristic =
+    characteristic =
       await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-    bleStatus.textContent =
-      "Bluetooth: ESP32 connected";
+    await characteristic.startNotifications();
 
-    detailText.textContent =
-      "Bluetooth connection successful.";
+    characteristic.addEventListener(
+      "characteristicvaluechanged",
+      receiveESP32
+    );
+
+    document.getElementById("bleStatus").innerText =
+      "CONNECTED: " + device.name;
+
+    device.addEventListener("gattserverdisconnected", () => {
+      document.getElementById("bleStatus").innerText =
+        "Bluetooth disconnected";
+      characteristic = null;
+    });
 
   }
 
-  catch (error) {
-
-    bleStatus.textContent =
-      "Bluetooth error: " + error.message;
+  catch(error) {
+    alert("Bluetooth error: " + error.message);
   }
-}
+};
 
-// ---------------- SEND BLE MESSAGE ----------------
+// RECEIVE ESP32 MESSAGE
+function receiveESP32(event) {
 
-async function sendDirection(direction) {
+  const value = event.target.value;
 
-  if (!bleCharacteristic) {
-    return;
-  }
+  const message = new TextDecoder().decode(value).trim();
 
-  if (direction === lastSentDirection ||
-      direction === sendingDirection) {
-    return;
+  console.log("ESP32:", message);
+
+  if (message === "RECOVERY") {
+    showQuiz();
   }
 
-  // Keep the latest direction if another write is in progress.
-  pendingDirection = direction;
-
-  if (sendingDirection !== "") {
-    return;
+  else if (message === "RESULT:CORRECT") {
+    document.getElementById("message").innerText =
+      "CORRECT ANSWER! Well done!";
   }
 
-  while (pendingDirection !== "") {
+  else if (message === "RESULT:WRONG") {
+    document.getElementById("message").innerText =
+      "WRONG ANSWER. Try again next time!";
+  }
 
-    const message = pendingDirection;
+  else if (message.startsWith("SCORE:")) {
+    score = Number(message.split(":")[1]);
 
-    pendingDirection = "";
-    sendingDirection = message;
+    document.getElementById("score").innerText =
+      "Score: " + score;
 
-    try {
+    updateEngagement();
+  }
 
-      const data =
-        new TextEncoder().encode(message);
+  else if (message.startsWith("QUIZCOUNT:")) {
+    quizCount = Number(message.split(":")[1]);
 
-      await bleCharacteristic.writeValue(data);
+    document.getElementById("quizCount").innerText =
+      "Quiz count: " + quizCount;
+  }
 
-      lastSentDirection = message;
-
-      detailText.textContent =
-        "Sent to ESP32: " + message;
-
-    }
-
-    catch (error) {
-
-      detailText.textContent =
-        "BLE send error: " + error.message;
-
-      pendingDirection = "";
-    }
-
-    finally {
-
-      sendingDirection = "";
-    }
+  else if (message.startsWith("ERROR:")) {
+    document.getElementById("message").innerText =
+      message;
   }
 }
 
-// ---------------- START CAMERA ----------------
+// SEND BLUETOOTH MESSAGE
+function sendBLE(message) {
 
-async function startCamera() {
+  if (!characteristic) return Promise.reject(
+    new Error("Bluetooth not connected")
+  );
+
+  pendingWrite = pendingWrite.then(async () => {
+
+    const data = new TextEncoder().encode(message);
+
+    if (characteristic.properties.write) {
+      await characteristic.writeValueWithResponse(data);
+    }
+    else {
+      await characteristic.writeValueWithoutResponse(data);
+    }
+
+  });
+
+  return pendingWrite;
+}
+
+// START CAMERA
+window.startCamera = async function() {
 
   try {
 
-    if (!bleCharacteristic) {
-
-      alert("First connect ESP32 Bluetooth.");
-
+    if (!characteristic) {
+      alert("Connect ESP32 Bluetooth first.");
       return;
     }
 
-    cameraStatus.textContent =
+    document.getElementById("direction").innerText =
       "Loading AI model...";
 
-    // LOAD MEDIAPIPE
-    const vision =
-      await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-      );
+    if (!faceLandmarker) {
 
-    faceLandmarker =
-      await FaceLandmarker.createFromOptions(
-        vision,
-        {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-            delegate: "CPU"
-          },
+      const vision =
+        await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+        );
 
-          runningMode: "VIDEO",
-          numFaces: 1
-        }
-      );
+      faceLandmarker =
+        await FaceLandmarker.createFromOptions(
+          vision,
+          {
+            baseOptions: {
+              modelAssetPath:
+                "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+              delegate: "CPU"
+            },
+            runningMode: "VIDEO",
+            numFaces: 1
+          }
+        );
+    }
 
-    // OPEN FRONT CAMERA
     cameraStream =
       await navigator.mediaDevices.getUserMedia({
         video: {
@@ -322,155 +378,236 @@ async function startCamera() {
     await video.play();
 
     cameraRunning = true;
+
     lastVideoTime = -1;
 
-    document.getElementById("startBtn").disabled = true;
-    document.getElementById("stopBtn").disabled = false;
-
-    cameraStatus.textContent =
-      "Camera AI: Running";
-
-    // Send an initial direction.
-    lastSentDirection = "";
-    await sendDirection("NO_FACE");
-
-    detectFrame();
+    detectFace();
 
   }
 
-  catch (error) {
+  catch(error) {
 
-    cameraStatus.textContent =
-      "Camera/AI error: " + error.message;
+    alert("Camera error: " + error.message);
 
-    console.error(error);
   }
-}
+};
 
-// ---------------- AI DETECTION ----------------
+// FACE DETECTION
+function detectFace() {
 
-function detectFrame() {
-
-  if (!cameraRunning || !faceLandmarker) {
-    return;
-  }
+  if (!cameraRunning) return;
 
   if (video.readyState >= 2 &&
       video.currentTime !== lastVideoTime) {
 
     lastVideoTime = video.currentTime;
 
-    const result =
+    const results =
       faceLandmarker.detectForVideo(
         video,
         performance.now()
       );
 
-    // NO FACE
-    if (!result.faceLandmarks ||
-        result.faceLandmarks.length === 0) {
+    if (results.faceLandmarks.length > 0) {
 
-      directionText.textContent = "NO FACE";
+      const landmarks = results.faceLandmarks[0];
 
-      sendDirection("NO_FACE");
+      const nose = landmarks[1];
+      const leftEye = landmarks[33];
+      const rightEye = landmarks[263];
+
+      const eyeCenter =
+        (leftEye.x + rightEye.x) / 2;
+
+      const eyeWidth =
+        Math.abs(rightEye.x - leftEye.x);
+
+      const diff =
+        (nose.x - eyeCenter) / eyeWidth;
+
+      let direction = "FORWARD";
+
+      // Front camera: direction labels are
+      // based on the student's head turn.
+      if (diff > 0.18) {
+        direction = "LEFT";
+      }
+      else if (diff < -0.18) {
+        direction = "RIGHT";
+      }
+
+      document.getElementById("direction").innerText =
+        "Direction: " + direction;
+
+      sendDirection(direction);
+
     }
 
     else {
 
-      const landmarks =
-        result.faceLandmarks[0];
+      document.getElementById("direction").innerText =
+        "Direction: NO FACE";
 
-      const nose = landmarks[1];
+      sendDirection("NO_FACE");
 
-      const eyeLeft = landmarks[33];
-      const eyeRight = landmarks[263];
-
-      const eyeMiddle =
-        (eyeLeft.x + eyeRight.x) / 2;
-
-      const eyeDistance =
-        Math.abs(eyeRight.x - eyeLeft.x);
-
-      const difference =
-        (nose.x - eyeMiddle) /
-        Math.max(eyeDistance, 0.001);
-
-      let direction = "FORWARD";
-
-      // Direction calibration from Step 5.
-      if (difference > 0.18) {
-
-        direction = "LEFT";
-      }
-
-      else if (difference < -0.18) {
-
-        direction = "RIGHT";
-      }
-
-      directionText.textContent = direction;
-
-      sendDirection(direction);
     }
   }
 
-  requestAnimationFrame(detectFrame);
+  requestAnimationFrame(detectFace);
 }
 
-// ---------------- STOP CAMERA ----------------
+// SEND DIRECTION
+function sendDirection(direction) {
 
-function stopCamera() {
+  const now = Date.now();
+
+  if (direction === lastSentDirection &&
+      now - lastSendTime < 1000) return;
+
+  if (now - lastSendTime < 250) return;
+
+  lastSentDirection = direction;
+  lastSendTime = now;
+
+  sendBLE(direction).catch(error => {
+    console.log("BLE send error:", error);
+  });
+}
+
+// STOP CAMERA
+window.stopCamera = function() {
 
   cameraRunning = false;
 
   if (cameraStream) {
-
-    cameraStream.getTracks().forEach(
-      track => track.stop()
-    );
-
+    cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
   }
 
   video.srcObject = null;
 
-  cameraStatus.textContent =
+  document.getElementById("direction").innerText =
     "Camera stopped";
 
-  directionText.textContent =
-    "STOPPED";
-
-  document.getElementById("startBtn").disabled = false;
-  document.getElementById("stopBtn").disabled = true;
-
   sendDirection("NO_FACE");
+};
+
+// SHOW QUIZ
+function showQuiz() {
+
+  if (quizActive) return;
+
+  quizActive = true;
+  selectedAnswer = "";
+
+  questionIndex =
+    (questionIndex + 1) % questions.length;
+
+  const q = questions[questionIndex];
+
+  document.getElementById("quizBox").style.display =
+    "block";
+
+  document.getElementById("questionNumber").innerText =
+    "Question " + (questionIndex + 1);
+
+  document.getElementById("question").innerText =
+    q.question;
+
+  const buttons =
+    document.querySelectorAll(".answer");
+
+  buttons.forEach((button, index) => {
+
+    button.classList.remove("selected");
+
+    button.innerText =
+      String.fromCharCode(65 + index) +
+      ". " + q.options[index];
+
+  });
+
+  document.getElementById("message").innerText =
+    "Choose your answer";
+
+  document.getElementById("quizBox").scrollIntoView({
+    behavior: "smooth"
+  });
 }
 
-// ---------------- BUTTON EVENTS ----------------
+// SELECT ANSWER
+window.selectAnswer = function(answer) {
 
-document.getElementById("connectBtn")
-  .addEventListener("click", connectBLE);
+  if (!quizActive) return;
 
-document.getElementById("startBtn")
-  .addEventListener("click", startCamera);
+  selectedAnswer = answer;
 
-document.getElementById("stopBtn")
-  .addEventListener("click", stopCamera);
+  document.querySelectorAll(".answer").forEach(button => {
+    button.classList.remove("selected");
+  });
 
-// ---------------- BROWSER CHECK ----------------
+  document.querySelectorAll(".answer")[
+    answer.charCodeAt(0) - 65
+  ].classList.add("selected");
 
-if (!navigator.bluetooth) {
+  document.getElementById("message").innerText =
+    "Selected answer: " + answer;
+};
 
-  bleStatus.textContent =
-    "Web Bluetooth unavailable. Use Android Chrome with HTTPS.";
+// SUBMIT ANSWER
+window.submitAnswer = async function() {
+
+  if (!quizActive) return;
+
+  if (!selectedAnswer) {
+    alert("Please select an answer.");
+    return;
+  }
+
+  const q = questions[questionIndex];
+
+  if (selectedAnswer !== q.correct) {
+    document.getElementById("message").innerText =
+      "Check your answer and submit again.";
+    return;
+  }
+
+  try {
+
+    await sendBLE("ANSWER:" + selectedAnswer);
+
+    quizActive = false;
+
+    document.getElementById("message").innerText =
+      "Answer sent to ESP32. Checking...";
+
+    document.getElementById("quizBox").style.display =
+      "none";
+
+  }
+
+  catch(error) {
+
+    document.getElementById("message").innerText =
+      "Could not send answer. Reconnect Bluetooth.";
+
+  }
+};
+
+// UPDATE STATUS
+function updateEngagement() {
+
+  let status = "LOW";
+
+  if (score >= 70) status = "GOOD";
+  else if (score >= 40) status = "MODERATE";
+
+  document.getElementById("engagement").innerText =
+    "Status: " + status;
 }
 
-if (!navigator.mediaDevices ||
-    !navigator.mediaDevices.getUserMedia) {
-
-  cameraStatus.textContent =
-    "Camera unavailable. Open the HTTPS webpage.";
-}
+// INITIAL DISPLAY
+updateEngagement();
 
 </script>
 
