@@ -1,148 +1,196 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smart Student Engagement Recovery</title>
+<title>Smart Learning AI</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #edf3f9;
-  text-align: center;
+  background: #eef3f8;
   margin: 0;
   padding: 15px;
-  color: #183047;
+  color: #172033;
 }
 
-.card {
+.container {
+  max-width: 650px;
+  margin: auto;
   background: white;
-  padding: 18px;
-  margin: 14px auto;
-  border-radius: 15px;
-  max-width: 440px;
-  box-shadow: 0 3px 12px #0001;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 3px 15px #0002;
+}
+
+h1 {
+  text-align: center;
+  color: #174ea6;
+  font-size: 25px;
+}
+
+h2 {
+  font-size: 18px;
+  margin-top: 22px;
+}
+
+select, button {
+  width: 100%;
+  padding: 13px;
+  margin: 7px 0;
+  border-radius: 8px;
+  border: 1px solid #ccd4df;
+  font-size: 16px;
 }
 
 button {
-  padding: 13px;
-  margin: 5px;
-  width: 90%;
-  border: none;
-  border-radius: 9px;
-  background: #1769aa;
+  background: #1769d2;
   color: white;
-  font-size: 16px;
+  border: none;
   cursor: pointer;
-}
-
-.answer {
-  width: 43%;
-  background: #e4efff;
-  color: #183047;
-  border: 2px solid #b7cce8;
   font-weight: bold;
 }
 
-.answer.selected {
-  background: #1769aa;
-  color: white;
+button:disabled {
+  background: #9aa9bd;
+}
+
+.option {
+  background: #edf3fb;
+  color: #172033;
+  text-align: left;
+  border: 2px solid transparent;
+}
+
+.option.selected {
+  border-color: #1769d2;
+  background: #dceaff;
+}
+
+.card {
+  background: #f3f6fa;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+#quizCard {
+  display: none;
 }
 
 #video {
   width: 100%;
-  max-width: 360px;
-  border-radius: 12px;
+  max-height: 260px;
+  object-fit: cover;
   transform: scaleX(-1);
+  border-radius: 12px;
+  background: #222;
 }
 
-#quizBox {
-  display: none;
+.small {
+  color: #56657a;
+  font-size: 13px;
 }
 
-#message {
+#status {
   font-weight: bold;
-  color: #1769aa;
-  padding: 10px;
+  color: #1769d2;
+}
+
+#question {
+  font-size: 18px;
+  line-height: 1.5;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Smart Student Engagement</h2>
-<p>AI-Powered Recovery System</p>
+<div class="container">
+
+<h1>SMART LEARNING AI</h1>
+<p style="text-align:center">
+Student Engagement Recovery System
+</p>
+
+<h2>1. Select Grade</h2>
+
+<select id="grade">
+  <option value="6">Grade 6</option>
+  <option value="7">Grade 7</option>
+  <option value="8">Grade 8</option>
+  <option value="9">Grade 9</option>
+  <option value="10">Grade 10</option>
+  <option value="11">Grade 11</option>
+  <option value="12">Grade 12</option>
+</select>
+
+<h2>2. Select Today's Topic</h2>
+
+<select id="topic"></select>
+
+<h2>3. Select Language</h2>
+
+<select id="language">
+  <option value="en">English</option>
+  <option value="ta">Tamil</option>
+  <option value="both">English + Tamil</option>
+</select>
 
 <div class="card">
-
-<h3>Bluetooth Connection</h3>
-<p id="bleStatus">Not connected</p>
-
-<button onclick="connectESP32()">
-CONNECT ESP32
-</button>
-
+  <b>Selected lesson:</b>
+  <p id="selectedLesson">Grade 6</p>
 </div>
 
-<div class="card">
+<h2>4. Connect ESP32</h2>
 
-<h3>Student AI Camera</h3>
+<button id="connectBtn" onclick="connectESP32()">
+  Connect ESP32 Bluetooth
+</button>
+
+<p id="bleStatus" class="small">Bluetooth not connected</p>
+
+<h2>5. AI Camera</h2>
 
 <video id="video" autoplay playsinline muted></video>
 
-<p id="direction">Direction: WAITING</p>
-
-<button onclick="startCamera()">
-START CAMERA AI
+<button id="cameraBtn" onclick="startCamera()">
+  Start Camera
 </button>
 
 <button onclick="stopCamera()">
-STOP CAMERA
+  Stop Camera
 </button>
 
-</div>
+<p>Head direction: <span id="direction">Waiting</span></p>
+
+<button onclick="sendMessage('START')">
+  Test Recovery Question
+</button>
 
 <div class="card">
-
-<h3>Student Performance</h3>
-
-<h2 id="score">Score: 70</h2>
-
-<p id="engagement">Status: WAITING</p>
-
-<p id="quizCount">Quiz count: 0</p>
-
+  <b>System status:</b>
+  <p id="status">Waiting</p>
+  <p>Score: <span id="score">0</span></p>
+  <p>Questions answered: <span id="count">0</span></p>
+  <p>Temperature: <span id="temp">--</span> °C</p>
+  <p>Humidity: <span id="humidity">--</span> %</p>
 </div>
 
-<div class="card" id="quizBox">
+<div class="card" id="quizCard">
+  <h2>Recovery Question</h2>
 
-<h2>Recovery Quiz</h2>
+  <p id="question"></p>
 
-<p id="questionNumber">Question 1</p>
+  <div id="options"></div>
 
-<h3 id="question">What is 2 × 10?</h3>
+  <button id="submitBtn" onclick="submitAnswer()">
+    Submit Answer
+  </button>
 
-<button class="answer" onclick="selectAnswer('A')">
-A. 10
-</button>
-
-<button class="answer" onclick="selectAnswer('B')">
-B. 20
-</button>
-
-<button class="answer" onclick="selectAnswer('C')">
-C. 30
-</button>
-
-<button class="answer" onclick="selectAnswer('D')">
-D. 40
-</button>
-
-<p id="message">Select your answer</p>
-
-<button onclick="submitAnswer()">
-SUBMIT ANSWER
-</button>
+  <p id="result"></p>
+</div>
 
 </div>
 
@@ -153,86 +201,502 @@ import {
   FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 
+// ---------- BLE SETTINGS ----------
+
 const SERVICE_UUID =
 "12345678-1234-1234-1234-123456789000";
 
 const CHARACTERISTIC_UUID =
 "12345678-1234-1234-1234-123456789001";
 
-let device;
-let characteristic;
-let faceLandmarker;
-let cameraStream;
-let cameraRunning = false;
-
-let selectedAnswer = "";
-let quizActive = false;
-let score = 70;
-let quizCount = 0;
-
-let lastDirection = "";
-let lastSentDirection = "";
-let lastSendTime = 0;
-let lastVideoTime = -1;
-
+let bleDevice = null;
+let characteristic = null;
 let pendingWrite = Promise.resolve();
 
-const video = document.getElementById("video");
+// ---------- QUESTION BANK ----------
+// Each topic has two sample questions.
+// correct is the zero-based answer position.
 
-const questions = [
-  {
-    question: "What is 2 x 10?",
-    options: ["10", "20", "30", "40"],
-    correct: "B"
-  },
-  {
-    question: "What is 5 + 7?",
-    options: ["10", "11", "12", "13"],
-    correct: "C"
-  },
-  {
-    question: "What is 9 x 3?",
-    options: ["18", "21", "27", "30"],
-    correct: "C"
-  },
-  {
-    question: "What is 20 / 4?",
-    options: ["4", "5", "6", "8"],
-    correct: "B"
-  },
-  {
-    question: "Which planet is our home?",
-    options: ["Mars", "Earth", "Venus", "Jupiter"],
-    correct: "B"
-  }
-];
+const bank = {
 
+6: [
+{
+id:"food",
+name:"Components of Food",
+questions:[
+{
+en:"Which nutrient mainly helps in body growth?",
+ta:"உடல் வளர்ச்சிக்கு முக்கியமாக உதவும் ஊட்டச்சத்து எது?",
+oe:["Protein","Water","Minerals","Roughage"],
+ot:["புரதம்","நீர்","தாதுக்கள்","நார்ச்சத்து"],
+correct:0
+},
+{
+en:"Which vitamin is produced in our skin in sunlight?",
+ta:"சூரிய ஒளியில் நமது தோலில் உருவாகும் வைட்டமின் எது?",
+oe:["Vitamin A","Vitamin B","Vitamin C","Vitamin D"],
+ot:["வைட்டமின் A","வைட்டமின் B","வைட்டமின் C","வைட்டமின் D"],
+correct:3
+}
+]
+},
+{
+id:"light",
+name:"Light and Shadows",
+questions:[
+{
+en:"Which object allows light to pass through completely?",
+ta:"ஒளியை முழுமையாகக் கடத்தும் பொருள் எது?",
+oe:["Wood","Clear glass","Cardboard","Stone"],
+ot:["மரம்","தெளிவான கண்ணாடி","அட்டை","கல்"],
+correct:1
+},
+{
+en:"What is needed to form a shadow?",
+ta:"நிழல் உருவாக எது தேவை?",
+oe:["Light and an opaque object","Only water","Only sound","Only air"],
+ot:["ஒளியும் ஒளிபுகா பொருளும்","நீர் மட்டும்","ஒலி மட்டும்","காற்று மட்டும்"],
+correct:0
+}
+]
+}
+],
+
+7: [
+{
+id:"plants",
+name:"Nutrition in Plants",
+questions:[
+{
+en:"Which green pigment helps plants make food?",
+ta:"தாவரங்கள் உணவு தயாரிக்க உதவும் பச்சை நிறமி எது?",
+oe:["Haemoglobin","Chlorophyll","Melanin","Iodine"],
+ot:["ஹீமோகுளோபின்","பச்சையம்","மெலனின்","அயோடின்"],
+correct:1
+},
+{
+en:"Which gas is absorbed during photosynthesis?",
+ta:"ஒளிச்சேர்க்கையின் போது தாவரங்கள் உறிஞ்சும் வாயு எது?",
+oe:["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"],
+ot:["ஆக்சிஜன்","நைட்ரஜன்","கார்பன் டை ஆக்சைடு","ஹைட்ரஜன்"],
+correct:2
+}
+]
+},
+{
+id:"heat",
+name:"Heat",
+questions:[
+{
+en:"Which instrument measures temperature?",
+ta:"வெப்பநிலையை அளக்கும் கருவி எது?",
+oe:["Barometer","Thermometer","Ammeter","Compass"],
+ot:["காற்றழுத்தமானி","வெப்பமானி","மின்னோட்டமானி","திசைகாட்டி"],
+correct:1
+},
+{
+en:"Heat normally flows from which body to which body?",
+ta:"வெப்பம் பொதுவாக எந்தப் பொருளிலிருந்து எதற்கு செல்கிறது?",
+oe:["Cold to hot","Hot to cold","Both never","Only upward"],
+ot:["குளிரிலிருந்து சூடானதற்கு","சூடானதிலிருந்து குளிரானதற்கு","இரண்டிலும் இல்லை","மேல்நோக்கி மட்டும்"],
+correct:1
+}
+]
+}
+],
+
+8: [
+{
+id:"crops",
+name:"Crop Production",
+questions:[
+{
+en:"Which process loosens and turns the soil?",
+ta:"மண்ணைத் தளர்த்தி புரட்டும் செயல்முறை எது?",
+oe:["Harvesting","Ploughing","Storage","Irrigation"],
+ot:["அறுவடை","உழுதல்","சேமிப்பு","நீர்ப்பாசனம்"],
+correct:1
+},
+{
+en:"Which tool is commonly used to sow seeds?",
+ta:"விதைகளை விதைக்க பொதுவாகப் பயன்படும் கருவி எது?",
+oe:["Seed drill","Sickle","Spade only","Thermometer"],
+ot:["விதைப்பான்","அரிவாள்","மண்வெட்டி மட்டும்","வெப்பமானி"],
+correct:0
+}
+]
+},
+{
+id:"force",
+name:"Force and Pressure",
+questions:[
+{
+en:"What is the SI unit of force?",
+ta:"விசையின் SI அலகு எது?",
+oe:["Joule","Newton","Watt","Pascal"],
+ot:["ஜூல்","நியூட்டன்","வாட்","பாஸ்கல்"],
+correct:1
+},
+{
+en:"Pressure is force divided by what?",
+ta:"அழுத்தம் என்பது விசையை எதனால் வகுத்தது?",
+oe:["Area","Time","Speed","Mass"],
+ot:["பரப்பளவு","நேரம்","வேகம்","நிறை"],
+correct:0
+}
+]
+}
+],
+
+9: [
+{
+id:"motion",
+name:"Motion",
+questions:[
+{
+en:"What is the SI unit of speed?",
+ta:"வேகத்தின் SI அலகு எது?",
+oe:["m/s","kg","Newton","Joule"],
+ot:["மீ/வி","கிலோகிராம்","நியூட்டன்","ஜூல்"],
+correct:0
+},
+{
+en:"What does the slope of a distance-time graph represent?",
+ta:"தொலைவு-நேர வரைபடத்தின் சாய்வு எதைக் குறிக்கிறது?",
+oe:["Mass","Speed","Force","Temperature"],
+ot:["நிறை","வேகம்","விசை","வெப்பநிலை"],
+correct:1
+}
+]
+},
+{
+id:"atoms",
+name:"Atoms and Molecules",
+questions:[
+{
+en:"What is the smallest unit of an element that retains its properties?",
+ta:"ஒரு தனிமத்தின் பண்புகளைத் தக்கவைக்கும் மிகச் சிறிய அலகு எது?",
+oe:["Cell","Atom","Tissue","Organ"],
+ot:["செல்","அணு","திசு","உறுப்பு"],
+correct:1
+},
+{
+en:"What is the chemical formula of water?",
+ta:"நீரின் வேதியியல் வாய்ப்பாடு எது?",
+oe:["CO2","O2","H2O","NaCl"],
+ot:["CO2","O2","H2O","NaCl"],
+correct:2
+}
+]
+}
+],
+
+10: [
+{
+id:"reactions",
+name:"Chemical Reactions",
+questions:[
+{
+en:"What is the chemical formula of oxygen gas?",
+ta:"ஆக்சிஜன் வாயுவின் வேதியியல் வாய்ப்பாடு எது?",
+oe:["O","O2","CO2","H2O"],
+ot:["O","O2","CO2","H2O"],
+correct:1
+},
+{
+en:"A reaction that releases heat is called what?",
+ta:"வெப்பத்தை வெளியிடும் வினை எவ்வாறு அழைக்கப்படுகிறது?",
+oe:["Endothermic","Exothermic","Neutral","Physical"],
+ot:["வெப்பம் உட்கவரும்","வெப்பம் வெளியிடும்","நடுநிலை","இயற்பியல்"],
+correct:1
+}
+]
+},
+{
+id:"electricity",
+name:"Electricity",
+questions:[
+{
+en:"What is the SI unit of electric current?",
+ta:"மின்னோட்டத்தின் SI அலகு எது?",
+oe:["Volt","Ohm","Ampere","Watt"],
+ot:["வோல்ட்","ஓம்","ஆம்பியர்","வாட்"],
+correct:2
+},
+{
+en:"Which instrument measures electric current?",
+ta:"மின்னோட்டத்தை அளக்கும் கருவி எது?",
+oe:["Voltmeter","Ammeter","Thermometer","Barometer"],
+ot:["மின்னழுத்தமானி","மின்னோட்டமானி","வெப்பமானி","காற்றழுத்தமானி"],
+correct:1
+}
+]
+}
+],
+
+11: [
+{
+id:"units",
+name:"Units and Measurements",
+questions:[
+{
+en:"What is the SI unit of length?",
+ta:"நீளத்தின் SI அலகு எது?",
+oe:["Metre","Kilogram","Second","Kelvin"],
+ot:["மீட்டர்","கிலோகிராம்","வினாடி","கெல்வின்"],
+correct:0
+},
+{
+en:"Which instrument measures very small lengths accurately?",
+ta:"மிகச் சிறிய நீளங்களைத் துல்லியமாக அளக்கும் கருவி எது?",
+oe:["Stopwatch","Vernier calipers","Ammeter","Thermometer"],
+ot:["நிறுத்துக்கடிகாரம்","வெர்னியர் காலிப்பர்","மின்னோட்டமானி","வெப்பமானி"],
+correct:1
+}
+]
+},
+{
+id:"laws",
+name:"Laws of Motion",
+questions:[
+{
+en:"Which law is also called the law of inertia?",
+ta:"நிலைம விதி என்று அழைக்கப்படும் நியூட்டனின் விதி எது?",
+oe:["First law","Second law","Third law","Law of gravitation"],
+ot:["முதல் விதி","இரண்டாம் விதி","மூன்றாம் விதி","ஈர்ப்பு விதி"],
+correct:0
+},
+{
+en:"What is the formula for force?",
+ta:"விசைக்கான சூத்திரம் எது?",
+oe:["F = ma","P = VI","V = IR","W = mg only"],
+ot:["F = ma","P = VI","V = IR","W = mg மட்டும்"],
+correct:0
+}
+]
+}
+],
+
+12: [
+{
+id:"electrostatics",
+name:"Electrostatics",
+questions:[
+{
+en:"What is the SI unit of electric charge?",
+ta:"மின்னூட்டத்தின் SI அலகு எது?",
+oe:["Coulomb","Ampere","Volt","Ohm"],
+ot:["கூலூம்","ஆம்பியர்","வோல்ட்","ஓம்"],
+correct:0
+},
+{
+en:"What happens between two like electric charges?",
+ta:"ஒரே வகையான இரண்டு மின்னூட்டங்களுக்கு இடையில் என்ன நிகழும்?",
+oe:["Attraction","Repulsion","No force","Fusion"],
+ot:["ஈர்ப்பு","விலக்கம்","விசை இல்லை","இணைதல்"],
+correct:1
+}
+]
+},
+{
+id:"current",
+name:"Current Electricity",
+questions:[
+{
+en:"What is the SI unit of resistance?",
+ta:"மின்தடையின் SI அலகு எது?",
+oe:["Volt","Ampere","Ohm","Watt"],
+ot:["வோல்ட்","ஆம்பியர்","ஓம்","வாட்"],
+correct:2
+},
+{
+en:"Which law relates voltage, current and resistance?",
+ta:"மின்னழுத்தம், மின்னோட்டம், மின்தடை ஆகியவற்றை தொடர்புபடுத்தும் விதி எது?",
+oe:["Newton's law","Ohm's law","Faraday's law","Hooke's law"],
+ot:["நியூட்டன் விதி","ஓம் விதி","ஃபாரடே விதி","ஹூக் விதி"],
+correct:1
+}
+]
+}
+]
+
+};
+
+// ---------- GRADE AND TOPIC ----------
+
+const gradeSelect = document.getElementById("grade");
+const topicSelect = document.getElementById("topic");
+
+function loadTopics() {
+  const grade = gradeSelect.value;
+
+  topicSelect.innerHTML = "";
+
+  bank[grade].forEach((topic, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = topic.name;
+    topicSelect.appendChild(option);
+  });
+
+  updateLesson();
+}
+
+function updateLesson() {
+  const grade = gradeSelect.value;
+  const topic = bank[grade][Number(topicSelect.value)];
+
+  document.getElementById("selectedLesson").textContent =
+    "Grade " + grade + " - " + topic.name;
+}
+
+gradeSelect.addEventListener("change", loadTopics);
+topicSelect.addEventListener("change", updateLesson);
+
+loadTopics();
+
+// ---------- QUESTION SELECTION ----------
+
+let currentQuestion = null;
+let selectedAnswer = null;
 let questionIndex = 0;
+let quizOpen = false;
 
-// BLUETOOTH CONNECT
-window.connectESP32 = async function() {
+const questionPositions = {};
 
+function showQuiz() {
+  if (quizOpen) return;
+
+  const grade = gradeSelect.value;
+  const topicIndex = Number(topicSelect.value);
+  const topic = bank[grade][topicIndex];
+
+  const key = grade + "_" + topic.id;
+
+  if (questionPositions[key] === undefined) {
+    questionPositions[key] = 0;
+  }
+
+  questionIndex =
+    questionPositions[key] % topic.questions.length;
+
+  currentQuestion = topic.questions[questionIndex];
+  questionPositions[key]++;
+
+  selectedAnswer = null;
+  quizOpen = true;
+
+  const lang = document.getElementById("language").value;
+
+  let questionText = currentQuestion.en;
+
+  if (lang === "ta") {
+    questionText = currentQuestion.ta;
+  }
+
+  if (lang === "both") {
+    questionText =
+      currentQuestion.en + "\n\n" + currentQuestion.ta;
+  }
+
+  document.getElementById("question").textContent =
+    questionText;
+
+  const options = document.getElementById("options");
+  options.innerHTML = "";
+
+  for (let i = 0; i < 4; i++) {
+    let optionText = currentQuestion.oe[i];
+
+    if (lang === "ta") {
+      optionText = currentQuestion.ot[i];
+    }
+
+    if (lang === "both") {
+      optionText =
+        currentQuestion.oe[i] + " / " +
+        currentQuestion.ot[i];
+    }
+
+    const button = document.createElement("button");
+
+    button.className = "option";
+    button.textContent =
+      String.fromCharCode(65 + i) + ". " + optionText;
+
+    button.onclick = () => {
+      selectedAnswer = i;
+
+      document.querySelectorAll(".option").forEach(b => {
+        b.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
+    };
+
+    options.appendChild(button);
+  }
+
+  document.getElementById("result").textContent = "";
+  document.getElementById("submitBtn").disabled = false;
+  document.getElementById("quizCard").style.display = "block";
+  document.getElementById("status").textContent =
+    "Recovery question displayed";
+}
+
+// ---------- SUBMIT ANSWER ----------
+
+async function submitAnswer() {
+  if (selectedAnswer === null) {
+    alert("Please select an answer");
+    return;
+  }
+
+  if (!currentQuestion) return;
+
+  const correct =
+    selectedAnswer === currentQuestion.correct;
+
+  document.getElementById("submitBtn").disabled = true;
+
+  // ESP32 receives the result and updates the score.
+  const message = correct ? "ANSWER:1" : "ANSWER:0";
+
+  await sendMessage(message);
+
+  document.getElementById("result").textContent =
+    correct
+      ? "Correct answer! நன்று!"
+      : "Incorrect answer. Try to learn and improve!";
+
+  document.getElementById("status").textContent =
+    correct ? "Correct answer" : "Wrong answer";
+
+  quizOpen = false;
+
+  setTimeout(() => {
+    document.getElementById("quizCard").style.display = "none";
+    currentQuestion = null;
+  }, 2500);
+}
+
+// ---------- BLUETOOTH ----------
+
+async function connectESP32() {
   try {
-
     if (!navigator.bluetooth) {
-      alert("Please use Android Chrome with Bluetooth enabled.");
+      alert("Use Chrome on Android or a supported computer browser.");
       return;
     }
 
-    device = await navigator.bluetooth.requestDevice({
-      filters: [{
-        name: "STUDENT_ENGAGEMENT"
-      }],
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ name: "STUDENT_ENGAGEMENT" }],
       optionalServices: [SERVICE_UUID]
     });
 
-    document.getElementById("bleStatus").innerText =
-      "Connecting...";
+    const server = await bleDevice.gatt.connect();
 
-    const server = await device.gatt.connect();
-
-    const service =
-      await server.getPrimaryService(SERVICE_UUID);
+    const service = await server.getPrimaryService(SERVICE_UUID);
 
     characteristic =
       await service.getCharacteristic(CHARACTERISTIC_UUID);
@@ -244,174 +708,176 @@ window.connectESP32 = async function() {
       receiveESP32
     );
 
-    document.getElementById("bleStatus").innerText =
-      "CONNECTED: " + device.name;
+    document.getElementById("bleStatus").textContent =
+      "Bluetooth connected to ESP32";
 
-    device.addEventListener("gattserverdisconnected", () => {
-      document.getElementById("bleStatus").innerText =
-        "Bluetooth disconnected";
-      characteristic = null;
-    });
+    document.getElementById("status").textContent =
+      "ESP32 connected";
 
-  }
-
-  catch(error) {
+  } catch (error) {
     alert("Bluetooth error: " + error.message);
-  }
-};
-
-// RECEIVE ESP32 MESSAGE
-function receiveESP32(event) {
-
-  const value = event.target.value;
-
-  const message = new TextDecoder().decode(value).trim();
-
-  console.log("ESP32:", message);
-
-  if (message === "RECOVERY") {
-    showQuiz();
-  }
-
-  else if (message === "RESULT:CORRECT") {
-    document.getElementById("message").innerText =
-      "CORRECT ANSWER! Well done!";
-  }
-
-  else if (message === "RESULT:WRONG") {
-    document.getElementById("message").innerText =
-      "WRONG ANSWER. Try again next time!";
-  }
-
-  else if (message.startsWith("SCORE:")) {
-    score = Number(message.split(":")[1]);
-
-    document.getElementById("score").innerText =
-      "Score: " + score;
-
-    updateEngagement();
-  }
-
-  else if (message.startsWith("QUIZCOUNT:")) {
-    quizCount = Number(message.split(":")[1]);
-
-    document.getElementById("quizCount").innerText =
-      "Quiz count: " + quizCount;
-  }
-
-  else if (message.startsWith("ERROR:")) {
-    document.getElementById("message").innerText =
-      message;
   }
 }
 
-// SEND BLUETOOTH MESSAGE
-function sendBLE(message) {
+async function sendMessage(message) {
+  if (!characteristic) {
+    alert("Connect ESP32 Bluetooth first");
+    return;
+  }
 
-  if (!characteristic) return Promise.reject(
-    new Error("Bluetooth not connected")
-  );
+  const data = new TextEncoder().encode(message);
 
+  // Queue writes to avoid overlapping BLE operations.
   pendingWrite = pendingWrite.then(async () => {
-
-    const data = new TextEncoder().encode(message);
-
     if (characteristic.properties.write) {
       await characteristic.writeValueWithResponse(data);
-    }
-    else {
+    } else {
       await characteristic.writeValueWithoutResponse(data);
     }
-
   });
 
   return pendingWrite;
 }
 
-// START CAMERA
-window.startCamera = async function() {
+function receiveESP32(event) {
+  const value = new TextDecoder().decode(
+    event.target.value
+  );
 
+  console.log("ESP32:", value);
+
+  if (value === "RECOVERY") {
+    showQuiz();
+    document.getElementById("status").textContent =
+      "Recovery started";
+  }
+
+  if (value === "RESULT:CORRECT") {
+    document.getElementById("status").textContent =
+      "Correct answer recorded";
+  }
+
+  if (value === "RESULT:WRONG") {
+    document.getElementById("status").textContent =
+      "Wrong answer recorded";
+  }
+
+  if (value === "RECOVERY_TIMEOUT") {
+    document.getElementById("status").textContent =
+      "Recovery timed out";
+    quizOpen = false;
+    document.getElementById("quizCard").style.display = "none";
+  }
+
+  if (value.startsWith("SCORE:")) {
+    document.getElementById("score").textContent =
+      value.split(":")[1];
+  }
+
+  if (value.startsWith("QUIZCOUNT:")) {
+    document.getElementById("count").textContent =
+      value.split(":")[1];
+  }
+
+  if (value.startsWith("STATUS:")) {
+    const parts = value.split(":");
+
+    document.getElementById("score").textContent = parts[1];
+    document.getElementById("count").textContent = parts[2];
+    document.getElementById("temp").textContent = parts[3];
+    document.getElementById("humidity").textContent = parts[4];
+  }
+}
+
+window.connectESP32 = connectESP32;
+window.sendMessage = sendMessage;
+window.submitAnswer = submitAnswer;
+
+// ---------- CAMERA AND MEDIAPIPE ----------
+
+let faceLandmarker = null;
+let cameraStream = null;
+let cameraRunning = false;
+let lastDirectionSent = "";
+let lastDirectionTime = 0;
+let lastVideoTime = -1;
+
+async function startCamera() {
   try {
-
     if (!characteristic) {
       alert("Connect ESP32 Bluetooth first.");
       return;
     }
 
-    document.getElementById("direction").innerText =
-      "Loading AI model...";
+    document.getElementById("status").textContent =
+      "Loading AI camera...";
 
-    if (!faceLandmarker) {
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+    );
 
-      const vision =
-        await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-        );
-
-      faceLandmarker =
-        await FaceLandmarker.createFromOptions(
-          vision,
-          {
-            baseOptions: {
-              modelAssetPath:
-                "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-              delegate: "CPU"
-            },
-            runningMode: "VIDEO",
-            numFaces: 1
-          }
-        );
-    }
-
-    cameraStream =
-      await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-          width: { ideal: 640 },
-          height: { ideal: 480 }
+    faceLandmarker = await FaceLandmarker.createFromOptions(
+      vision,
+      {
+        baseOptions: {
+          modelAssetPath:
+            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+          delegate: "CPU"
         },
-        audio: false
-      });
+        runningMode: "VIDEO",
+        numFaces: 1
+      }
+    );
 
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "user",
+        width: 640,
+        height: 480
+      },
+      audio: false
+    });
+
+    const video = document.getElementById("video");
     video.srcObject = cameraStream;
 
     await video.play();
 
     cameraRunning = true;
 
-    lastVideoTime = -1;
+    document.getElementById("status").textContent =
+      "Camera AI running";
 
-    detectFace();
+    requestAnimationFrame(detectFace);
 
-  }
-
-  catch(error) {
-
+  } catch (error) {
     alert("Camera error: " + error.message);
-
   }
-};
+}
 
-// FACE DETECTION
-function detectFace() {
-
+async function detectFace() {
   if (!cameraRunning) return;
+
+  const video = document.getElementById("video");
 
   if (video.readyState >= 2 &&
       video.currentTime !== lastVideoTime) {
 
     lastVideoTime = video.currentTime;
 
-    const results =
-      faceLandmarker.detectForVideo(
-        video,
-        performance.now()
-      );
+    const result = faceLandmarker.detectForVideo(
+      video,
+      performance.now()
+    );
 
-    if (results.faceLandmarks.length > 0) {
+    let direction = "NO_FACE";
 
-      const landmarks = results.faceLandmarks[0];
+    if (result.faceLandmarks &&
+        result.faceLandmarks.length > 0) {
 
+      const landmarks = result.faceLandmarks[0];
+
+      // Nose tip and eye corners
       const nose = landmarks[1];
       const leftEye = landmarks[33];
       const rightEye = landmarks[263];
@@ -422,61 +888,39 @@ function detectFace() {
       const eyeWidth =
         Math.abs(rightEye.x - leftEye.x);
 
-      const diff =
+      const offset =
         (nose.x - eyeCenter) / eyeWidth;
 
-      let direction = "FORWARD";
-
-      // Front camera: direction labels are
-      // based on the student's head turn.
-      if (diff > 0.18) {
-        direction = "LEFT";
-      }
-      else if (diff < -0.18) {
+      if (offset > 0.18) {
         direction = "RIGHT";
       }
-
-      document.getElementById("direction").innerText =
-        "Direction: " + direction;
-
-      sendDirection(direction);
-
+      else if (offset < -0.18) {
+        direction = "LEFT";
+      }
+      else {
+        direction = "FORWARD";
+      }
     }
 
-    else {
+    document.getElementById("direction").textContent =
+      direction;
 
-      document.getElementById("direction").innerText =
-        "Direction: NO FACE";
+    const now = Date.now();
 
-      sendDirection("NO_FACE");
+    if (direction !== lastDirectionSent ||
+        now - lastDirectionTime >= 900) {
 
+      sendMessage(direction).catch(console.error);
+
+      lastDirectionSent = direction;
+      lastDirectionTime = now;
     }
   }
 
   requestAnimationFrame(detectFace);
 }
 
-// SEND DIRECTION
-function sendDirection(direction) {
-
-  const now = Date.now();
-
-  if (direction === lastSentDirection &&
-      now - lastSendTime < 1000) return;
-
-  if (now - lastSendTime < 250) return;
-
-  lastSentDirection = direction;
-  lastSendTime = now;
-
-  sendBLE(direction).catch(error => {
-    console.log("BLE send error:", error);
-  });
-}
-
-// STOP CAMERA
-window.stopCamera = function() {
-
+function stopCamera() {
   cameraRunning = false;
 
   if (cameraStream) {
@@ -484,130 +928,13 @@ window.stopCamera = function() {
     cameraStream = null;
   }
 
-  video.srcObject = null;
-
-  document.getElementById("direction").innerText =
-    "Camera stopped";
-
-  sendDirection("NO_FACE");
-};
-
-// SHOW QUIZ
-function showQuiz() {
-
-  if (quizActive) return;
-
-  quizActive = true;
-  selectedAnswer = "";
-
-  questionIndex =
-    (questionIndex + 1) % questions.length;
-
-  const q = questions[questionIndex];
-
-  document.getElementById("quizBox").style.display =
-    "block";
-
-  document.getElementById("questionNumber").innerText =
-    "Question " + (questionIndex + 1);
-
-  document.getElementById("question").innerText =
-    q.question;
-
-  const buttons =
-    document.querySelectorAll(".answer");
-
-  buttons.forEach((button, index) => {
-
-    button.classList.remove("selected");
-
-    button.innerText =
-      String.fromCharCode(65 + index) +
-      ". " + q.options[index];
-
-  });
-
-  document.getElementById("message").innerText =
-    "Choose your answer";
-
-  document.getElementById("quizBox").scrollIntoView({
-    behavior: "smooth"
-  });
+  document.getElementById("video").srcObject = null;
+  document.getElementById("direction").textContent = "Stopped";
+  document.getElementById("status").textContent = "Camera stopped";
 }
 
-// SELECT ANSWER
-window.selectAnswer = function(answer) {
-
-  if (!quizActive) return;
-
-  selectedAnswer = answer;
-
-  document.querySelectorAll(".answer").forEach(button => {
-    button.classList.remove("selected");
-  });
-
-  document.querySelectorAll(".answer")[
-    answer.charCodeAt(0) - 65
-  ].classList.add("selected");
-
-  document.getElementById("message").innerText =
-    "Selected answer: " + answer;
-};
-
-// SUBMIT ANSWER
-window.submitAnswer = async function() {
-
-  if (!quizActive) return;
-
-  if (!selectedAnswer) {
-    alert("Please select an answer.");
-    return;
-  }
-
-  const q = questions[questionIndex];
-
-  if (selectedAnswer !== q.correct) {
-    document.getElementById("message").innerText =
-      "Check your answer and submit again.";
-    return;
-  }
-
-  try {
-
-    await sendBLE("ANSWER:" + selectedAnswer);
-
-    quizActive = false;
-
-    document.getElementById("message").innerText =
-      "Answer sent to ESP32. Checking...";
-
-    document.getElementById("quizBox").style.display =
-      "none";
-
-  }
-
-  catch(error) {
-
-    document.getElementById("message").innerText =
-      "Could not send answer. Reconnect Bluetooth.";
-
-  }
-};
-
-// UPDATE STATUS
-function updateEngagement() {
-
-  let status = "LOW";
-
-  if (score >= 70) status = "GOOD";
-  else if (score >= 40) status = "MODERATE";
-
-  document.getElementById("engagement").innerText =
-    "Status: " + status;
-}
-
-// INITIAL DISPLAY
-updateEngagement();
+window.startCamera = startCamera;
+window.stopCamera = stopCamera;
 
 </script>
 
