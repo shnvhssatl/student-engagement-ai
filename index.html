@@ -541,7 +541,7 @@ async function startCamera() {
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
         },
         runningMode: "VIDEO",
-        numFaces: 1
+        numFaces: 20
       }
     );
 
@@ -566,6 +566,9 @@ async function startCamera() {
   }
 }
 
+const studentTimers = {};
+const DISTRACTION_LIMIT = 5000;
+
 function detectFace() {
   if (!cameraRunning || !faceLandmarker) return;
 
@@ -577,14 +580,14 @@ function detectFace() {
       performance.now()
     );
 
-    let direction = "NO_FACE";
+    const faces = result.faceLandmarks || [];
+    const now = Date.now();
 
-    if (result.faceLandmarks &&
-        result.faceLandmarks.length > 0) {
+    let recoveryNeeded = false;
 
-      const points = result.faceLandmarks[0];
+    faces.forEach((points, index) => {
+      const studentID = "Student " + (index + 1);
 
-      // Nose tip and eye corners
       const nose = points[1];
       const leftEye = points[33];
       const rightEye = points[263];
@@ -592,36 +595,62 @@ function detectFace() {
       const eyeMiddle = (leftEye.x + rightEye.x) / 2;
       const faceWidth = Math.abs(rightEye.x - leftEye.x);
 
-      if (faceWidth > 0) {
-        const offset = (nose.x - eyeMiddle) / faceWidth;
-
-        if (offset > 0.12) {
-          direction = "RIGHT";
-        } else if (offset < -0.12) {
-          direction = "LEFT";
-        } else {
-          direction = "FORWARD";
-        }
+      if (!studentTimers[studentID]) {
+        studentTimers[studentID] = {
+          direction: "FORWARD",
+          startTime: 0,
+          recovery: false
+        };
       }
-    }
+
+      if (faceWidth <= 0) return;
+
+      const offset = (nose.x - eyeMiddle) / faceWidth;
+
+      let direction = "FORWARD";
+
+      if (offset > 0.12) {
+        direction = "LEFT";
+      } else if (offset < -0.12) {
+        direction = "RIGHT";
+      }
+
+      const student = studentTimers[studentID];
+
+      if (direction === "LEFT" || direction === "RIGHT") {
+
+        if (student.direction !== direction) {
+          student.startTime = now;
+          student.recovery = false;
+        }
+
+        if (now - student.startTime >= DISTRACTION_LIMIT) {
+          student.recovery = true;
+          recoveryNeeded = true;
+        }
+
+      } else {
+        student.startTime = 0;
+        student.recovery = false;
+      }
+
+      student.direction = direction;
+    });
 
     document.getElementById("cameraStatus").textContent =
-      "Estimated head direction: " + direction;
+      "Faces detected: " + faces.length +
+      " | Recovery alerts: " +
+      Object.values(studentTimers).filter(s => s.recovery).length;
 
-    const now = Date.now();
-
-    if (direction !== lastDirection ||
-        now - lastDirectionSent > 1000) {
-
-      sendToESP32(direction);
-      lastDirection = direction;
-      lastDirectionSent = now;
+    // ESP32 receives a general alert only.
+    // It cannot identify which individual student needs recovery.
+    if (recoveryNeeded) {
+      sendToESP32("START");
     }
   }
 
   requestAnimationFrame(detectFace);
 }
-
 function stopCamera() {
   cameraRunning = false;
 
