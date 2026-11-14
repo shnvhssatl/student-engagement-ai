@@ -610,12 +610,13 @@ function detectFace() {
       let direction = "FORWARD";
 
       if (offset > 0.12) {
-        direction = "LEFT";
-      } else if (offset < -0.12) {
-        direction = "RIGHT";
-      }
-
-      const student = studentTimers[studentID];
+  direction = "LEFT";
+} else if (offset < -0.12) {
+  direction = "RIGHT";
+} else {
+  direction = "FORWARD";
+}
+ studentTimers[studentID];
 
       if (direction === "LEFT" || direction === "RIGHT") {
 
