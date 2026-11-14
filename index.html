@@ -14,14 +14,37 @@ body {
   padding: 15px;
   color: #172033;
 }
+.selection-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.selection-grid label {
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.selection-grid select {
+  width: 100%;
+  padding: 9px;
+  font-size: 14px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.card {
+  padding: 14px;
+  margin-bottom: 10px;
+}
 .container {
   max-width: 750px;
   margin: auto;
 }
 .card {
   background: white;
-  padding: 18px;
-  margin-bottom: 15px;
+  padding: 15px;
+  margin-bottom: 10px;
   border-radius: 12px;
   box-shadow: 0 2px 8px #0001;
 }
@@ -32,7 +55,7 @@ label {
   margin-top: 12px;
 }
 select, button {
-  width: 100%;
+  width: 40%;
   padding: 12px;
   margin-top: 7px;
   border-radius: 8px;
@@ -79,39 +102,48 @@ button {
 <div class="container">
 
 <div class="card">
-<h2>Smart Student Engagement Recovery System</h2>
-<p>Teacher Dashboard</p>
+<h2><center>Smart Student Engagement Recovery System</h2>
+<p>Teacher Dashboard</p></center>
+<div class="selection-grid">
 
-<label>Select Grade</label>
-<select id="grade">
-<option value="6">Grade 6</option>
-<option value="7">Grade 7</option>
-<option value="8" selected>Grade 8</option>
-<option value="9">Grade 9</option>
-<option value="10">Grade 10</option>
-<option value="11">Grade 11</option>
-<option value="12">Grade 12</option>
-</select>
+  <div>
+    <label for="grade">Grade</label>
+    <select id="grade">
+      <option value="6">Grade 6</option>
+      <option value="7">Grade 7</option>
+      <option value="8" selected>Grade 8</option>
+      <option value="9">Grade 9</option>
+      <option value="10">Grade 10</option>
+      <option value="11">Grade 11</option>
+      <option value="12">Grade 12</option>
+    </select>
+  </div>
 
-<label>Select Subject</label>
-<select id="subject">
-<option>Science</option>
-<option>Mathematics</option>
-<option>English</option>
-<option>Social Science</option>
-</select>
+  <div>
+    <label for="subject">Subject</label>
+    <select id="subject">
+      <option>Science</option>
+      <option>Mathematics</option>
+      <option>English</option>
+      <option>Social Science</option>
+    </select>
+  </div>
 
-<label>Select Today's Topic</label>
-<select id="topic"></select>
+  <div>
+    <label for="topic">Today's Topic</label>
+    <select id="topic"></select>
+  </div>
 
-<label>Select Language</label>
-<select id="language">
-<option value="English">English</option>
-<option value="Tamil">Tamil</option>
-<option value="Both">English + Tamil</option>
-</select>
+  <div>
+    <label for="language">Language</label>
+    <select id="language">
+      <option value="English">English</option>
+      <option value="Tamil">Tamil</option>
+      <option value="Both">English + Tamil</option>
+    </select>
+  </div>
 
-<div class="status" id="selectionSummary"></div>
+</div><div class="status" id="selectionSummary"></div>
 </div>
 
 <div class="card">
