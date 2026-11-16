@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smart Student Engagement Recovery System</title>
+<title>Smart Student Engagement System</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -24,36 +24,36 @@ body {
 
 .card {
   background: white;
-  padding: 15px;
-  margin-bottom: 12px;
+  padding: 14px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px #0001;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 7px #0001;
 }
 
 h2 {
   color: #174ea6;
-  font-size: 21px;
-  margin-top: 5px;
+  font-size: 19px;
+  margin-top: 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 label {
-  display: block;
   font-weight: bold;
-  font-size: 14px;
-  margin-top: 7px;
-}
-
-.selection-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
+  font-size: 13px;
+  display: block;
+  margin-top: 6px;
 }
 
 select, button {
   width: 100%;
   padding: 10px;
+  border-radius: 7px;
   margin-top: 5px;
-  border-radius: 8px;
   font-size: 14px;
 }
 
@@ -63,56 +63,68 @@ select {
 }
 
 button {
-  border: none;
   background: #1769d2;
   color: white;
+  border: 0;
   font-weight: bold;
-  cursor: pointer;
-}
-
-button:disabled {
-  background: #999;
 }
 
 .green { background: #15803d; }
+.red { background: #b91c1c; }
 .grey { background: #475569; }
-
-.status {
-  background: #e8f0fe;
-  padding: 11px;
-  border-radius: 8px;
-  margin-top: 10px;
-  overflow-wrap: anywhere;
-}
-
-.button-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
 
 #video {
   width: 100%;
-  max-height: 300px;
+  max-height: 400px;
   background: #111;
-  border-radius: 10px;
-  margin-top: 10px;
-  transform: scaleX(-1);
-}
-
-#quiz { display: none; }
-
-.option {
-  display: block;
-  background: #f1f5f9;
-  padding: 12px;
-  margin: 8px 0;
   border-radius: 8px;
-  font-weight: normal;
+  margin-top: 10px;
 }
 
-.option input {
-  margin-right: 8px;
+#seatGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.seat {
+  padding: 9px 2px;
+  border-radius: 7px;
+  text-align: center;
+  font-size: 11px;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  min-height: 55px;
+}
+
+.seat strong {
+  display: block;
+  font-size: 12px;
+}
+
+.forward { background: #dcfce7; }
+.left, .right, .alert {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+.missing {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.rowTitle {
+  grid-column: 1 / -1;
+  font-weight: bold;
+  margin-top: 7px;
+  font-size: 13px;
+}
+
+.status {
+  padding: 10px;
+  background: #e8f0fe;
+  border-radius: 8px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
 }
 
 .small {
@@ -120,9 +132,10 @@ button:disabled {
   color: #555;
 }
 
-@media(max-width:450px) {
-  .selection-grid { gap: 6px; }
-  h2 { font-size: 18px; }
+@media(max-width:480px) {
+  #seatGrid { gap: 3px; }
+  .seat { font-size: 9px; padding: 6px 1px; }
+  .seat strong { font-size: 10px; }
 }
 </style>
 </head>
@@ -130,609 +143,522 @@ button:disabled {
 <body>
 <div class="container">
 
-<!-- TEACHER SELECTION -->
 <div class="card">
-<h2><center>Smart Student Engagement Recovery System</h2>
-<p>Teacher Dashboard</p>
+<h2>AI-Powered Smart Student Engagement Recovery System</h2>
+<p>Teacher Dashboard – 40 Students</p>
 
-<div class="selection-grid">
+<div class="grid">
 
-  <div>
-    <label for="grade">Select Grade</label>
-    <select id="grade">
-      <option value="6">Grade 6</option>
-      <option value="7">Grade 7</option>
-      <option value="8" selected>Grade 8</option>
-      <option value="9">Grade 9</option>
-      <option value="10">Grade 10</option>
-      <option value="11">Grade 11</option>
-      <option value="12">Grade 12</option>
-    </select>
-  </div>
-
-  <div>
-    <label for="subject">Select Subject</label>
-    <select id="subject"></select>
-  </div>
-
-  <div>
-    <label for="topic">Today's Topic</label>
-    <select id="topic"></select>
-  </div>
-
-  <div>
-    <label for="language">Language</label>
-    <select id="language">
-      <option value="English">English</option>
-      <option value="Tamil">Tamil</option>
-      <option value="Both">English + Tamil</option>
-    </select>
-  </div>
-
+<div>
+<label>Grade</label>
+<select id="grade">
+<option>6</option>
+<option>7</option>
+<option selected>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+</select>
 </div>
 
-<div class="status" id="selectionSummary"></div>
+<div>
+<label>Subject</label>
+<select id="subject"></select>
 </div>
+
+<div>
+<label>Today's Topic</label>
+<select id="topic"></select>
+</div>
+
+<div>
+<label>Question Language</label>
+<select id="language">
+<option value="English">English</option>
+<option value="Tamil">Tamil</option>
+<option value="Both">English + Tamil</option>
+</select>
+</div>
+
+</div>
+<div id="selectionStatus" class="status"></div>
+</div>
+
 
 <!-- BLUETOOTH -->
-<div class="card">
-<h2>ESP32 Bluetooth Connection</h2>
 
-<div class="button-grid">
-  <button onclick="connectESP32()">Connect ESP32</button>
-  <button class="green" onclick="startClass()">Start Class</button>
+<div class="card">
+<h2>ESP32 Connection</h2>
+
+<div class="grid">
+<button onclick="connectESP32()">Connect ESP32</button>
+<button class="green" onclick="startClass()">Start Class</button>
 </div>
 
-<div class="status" id="bleStatus">
+<div id="bleStatus" class="status">
 Bluetooth not connected
 </div>
 </div>
 
+
 <!-- CAMERA -->
+
 <div class="card">
-<h2>Camera Monitoring</h2>
+<h2>Classroom Camera</h2>
 
 <p class="small">
-The camera estimates head direction. It does not prove that a student
-is distracted or inattentive.
+Keep the camera facing the class. Allow camera access.
+Video processing is performed in the browser.
 </p>
 
-<div class="button-grid">
-  <button onclick="startCamera()">Start Camera</button>
-  <button class="grey" onclick="stopCamera()">Stop Camera</button>
+<div class="grid">
+<button onclick="startCamera()">Start Camera</button>
+<button class="grey" onclick="stopCamera()">Stop Camera</button>
 </div>
 
 <video id="video" autoplay playsinline muted></video>
 
-<div class="status" id="cameraStatus">
-Camera not started
+<div id="cameraStatus" class="status">
+Camera stopped
 </div>
 </div>
 
-<!-- STUDENT STATUS -->
+
+<!-- VOICE -->
+
 <div class="card">
-<h2>Student Status</h2>
+<h2>Voice Alert Settings</h2>
 
-<p>Score: <b id="score">0</b></p>
-<p>Questions answered: <b id="count">0</b></p>
-<p>Temperature: <b id="temp">--</b> °C</p>
-<p>Humidity: <b id="humidity">--</b> %</p>
+<label>Announcement Language</label>
+<select id="voiceLanguage">
+<option value="en-IN">English</option>
+<option value="ta-IN">Tamil</option>
+</select>
 
-<div class="status" id="systemStatus">
-Waiting for ESP32
+<div class="grid">
+<button onclick="testVoice()">Test Voice</button>
+<button class="grey" onclick="stopVoice()">Stop Voice</button>
+</div>
+
+<label>
+<input type="checkbox" id="voiceEnabled" checked>
+Enable voice announcements
+</label>
+
+<label>
+<input type="checkbox" id="automaticAlert" checked>
+Enable automatic seat alerts
+</label>
+</div>
+
+
+<!-- CLASSROOM DASHBOARD -->
+
+<div class="card">
+<h2>Live Classroom Seating Dashboard</h2>
+
+<div class="grid">
+<div class="status">
+Faces detected: <strong id="faceCount">0</strong>
+</div>
+<div class="status">
+Turned seats: <strong id="turnedCount">0</strong>
 </div>
 </div>
 
-<!-- RECOVERY QUIZ -->
-<div class="card" id="quiz">
-<h2>Recovery Activity</h2>
+<p class="small">
+Row 1 is the top of the camera image. Seats are numbered
+left to right. Camera position must be calibrated to match
+the actual classroom.
+</p>
 
+<div id="seatGrid"></div>
+
+<div class="status" id="alertList">
+No alerts
+</div>
+</div>
+
+
+<!-- ESP32 STATUS -->
+
+<div class="card">
+<h2>Environmental Monitoring</h2>
+
+<div class="grid">
+<div class="status">
+Temperature: <strong id="temp">--</strong> °C
+</div>
+<div class="status">
+Humidity: <strong id="humidity">--</strong> %
+</div>
+<div class="status">
+Quiz score: <strong id="score">0</strong>
+</div>
+<div class="status">
+Questions: <strong id="quizCount">0</strong>
+</div>
+</div>
+</div>
+
+
+<!-- RECOVERY QUESTION -->
+
+<div class="card">
+<h2>Recovery Question</h2>
+
+<button onclick="showQuestion()">Test Recovery Question</button>
+
+<div id="quiz" style="display:none">
 <p id="questionText"></p>
 <div id="answerOptions"></div>
-
 <button onclick="submitAnswer()">Submit Answer</button>
-
-<div class="status" id="answerResult"></div>
+<div id="answerResult" class="status"></div>
+</div>
 </div>
 
 </div>
+
 
 <script type="module">
 
-// =====================================
-// 1. SUBJECTS FOR EACH GRADE
-// =====================================
+// =================================================
+// 1. GRADE / SUBJECT / TOPIC DATA
+// =================================================
 
-const subjectData = {
-  "6": ["Science","Mathematics","English","Social Science"],
-  "7": ["Science","Mathematics","English","Social Science"],
-  "8": ["Science","Mathematics","English","Social Science"],
-  "9": ["Science","Mathematics","English","Social Science"],
-  "10": ["Science","Mathematics","English","Social Science"],
-
-  "11": [
-    "Physics","Chemistry","Mathematics","Biology",
-    "Computer Science","English","Tamil"
-  ],
-
-  "12": [
-    "Physics","Chemistry","Mathematics","Biology",
-    "Computer Science","English","Tamil"
-  ]
+const subjects = {
+"6":["Science","Mathematics","English","Social Science"],
+"7":["Science","Mathematics","English","Social Science"],
+"8":["Science","Mathematics","English","Social Science"],
+"9":["Science","Mathematics","English","Social Science"],
+"10":["Science","Mathematics","English","Social Science"],
+"11":["Physics","Chemistry","Mathematics","Biology",
+      "Computer Science","English","Tamil"],
+"12":["Physics","Chemistry","Mathematics","Biology",
+      "Computer Science","English","Tamil"]
 };
 
-
-// =====================================
-// 2. TOPICS FOR EACH GRADE AND SUBJECT
-// =====================================
-
-const topicData = {
-"6": {
-  "Science":["Components of Food","Light and Shadows"],
-  "Mathematics":["Knowing Our Numbers","Basic Geometry"],
-  "English":["Prose","Grammar"],
-  "Social Science":["The Universe","Our Earth"]
+const topics = {
+"6":{
+"Science":["Components of Food","Light and Shadows"],
+"Mathematics":["Knowing Our Numbers","Basic Geometry"],
+"English":["Prose","Grammar"],
+"Social Science":["The Universe","Our Earth"]
 },
-
-"7": {
-  "Science":["Nutrition in Plants","Heat"],
-  "Mathematics":["Number System","Measurements"],
-  "English":["Prose","Tenses"],
-  "Social Science":["Interior of the Earth","Resources"]
+"7":{
+"Science":["Nutrition in Plants","Heat"],
+"Mathematics":["Number System","Measurements"],
+"English":["Prose","Tenses"],
+"Social Science":["Interior of the Earth","Resources"]
 },
-
-"8": {
-  "Science":["Force and Pressure","Crop Production"],
-  "Mathematics":["Rational Numbers","Linear Equations"],
-  "English":["Prose","Grammar"],
-  "Social Science":["Resources","Industries"]
+"8":{
+"Science":["Force and Pressure","Crop Production"],
+"Mathematics":["Rational Numbers","Linear Equations"],
+"English":["Prose","Grammar"],
+"Social Science":["Resources","Industries"]
 },
-
-"9": {
-  "Science":["Motion","Matter Around Us"],
-  "Mathematics":["Real Numbers","Algebra"],
-  "English":["Prose","Grammar"],
-  "Social Science":["Geography","History"]
+"9":{
+"Science":["Motion","Matter Around Us"],
+"Mathematics":["Real Numbers","Algebra"],
+"English":["Prose","Grammar"],
+"Social Science":["Geography","History"]
 },
-
-"10": {
-  "Science":["Chemical Reactions","Electricity"],
-  "Mathematics":["Relations and Functions","Numbers and Sequences"],
-  "English":["Prose","Grammar"],
-  "Social Science":["Indian Constitution","World History"]
+"10":{
+"Science":["Chemical Reactions","Electricity"],
+"Mathematics":["Relations and Functions","Numbers and Sequences"],
+"English":["Prose","Grammar"],
+"Social Science":["Indian Constitution","World History"]
 },
-
-"11": {
-  "Physics":["Units and Measurements","Laws of Motion"],
-  "Chemistry":["Basic Concepts of Chemistry","Atomic Structure"],
-  "Mathematics":["Sets","Basic Algebra"],
-  "Biology":["Living World","Plant Kingdom"],
-  "Computer Science":["Introduction to Computers","Number Systems"],
-  "English":["Prose","Poetry"],
-  "Tamil":["செய்யுள்","உரைநடை"]
+"11":{
+"Physics":["Units and Measurements","Laws of Motion"],
+"Chemistry":["Basic Concepts of Chemistry","Atomic Structure"],
+"Mathematics":["Sets","Basic Algebra"],
+"Biology":["Living World","Plant Kingdom"],
+"Computer Science":["Introduction to Computers","Number Systems"],
+"English":["Prose","Poetry"],
+"Tamil":["செய்யுள்","உரைநடை"]
 },
-
-"12": {
-  "Physics":["Electrostatics","Current Electricity"],
-  "Chemistry":["Metallurgy","p-Block Elements"],
-  "Mathematics":["Applications of Matrices","Complex Numbers"],
-  "Biology":["Reproduction in Organisms","Genetics"],
-  "Computer Science":["Data Abstraction","Python Programming"],
-  "English":["Prose","Poetry"],
-  "Tamil":["செய்யுள்","உரைநடை"]
+"12":{
+"Physics":["Electrostatics","Current Electricity"],
+"Chemistry":["Metallurgy","p-Block Elements"],
+"Mathematics":["Applications of Matrices","Complex Numbers"],
+"Biology":["Reproduction in Organisms","Genetics"],
+"Computer Science":["Data Abstraction","Python Programming"],
+"English":["Prose","Poetry"],
+"Tamil":["செய்யுள்","உரைநடை"]
 }
 };
 
 
-// =====================================
-// 3. QUESTION BANK
-// =====================================
+// =================================================
+// 2. QUESTION BANK
+// =================================================
 
-function Q(en, ta, optionsEn, optionsTa, correct) {
-  return {
-    en, ta, optionsEn, optionsTa, correct
-  };
+function Q(en,ta,oe,ot,correct) {
+  return {en,ta,oe,ot,correct};
 }
 
-const questionBank = {
+const questions = {
 
-"8|Science|Force and Pressure": [
-
-Q(
-"Which force pulls objects towards the Earth?",
-"பொருட்களை பூமியை நோக்கி இழுக்கும் விசை எது?",
-["Magnetic force","Gravitational force","Frictional force","Muscular force"],
-["காந்த விசை","ஈர்ப்பு விசை","உராய்வு விசை","தசை விசை"],1
-),
-
-Q(
-"What is the SI unit of pressure?",
-"அழுத்தத்தின் SI அலகு எது?",
-["Newton","Joule","Pascal","Watt"],
-["நியூட்டன்","ஜூல்","பாஸ்கல்","வாட்"],2
-),
-
-Q(
-"Pressure is equal to:",
-"அழுத்தம் எதற்குச் சமம்?",
-["Force × Area","Force / Area","Area / Force","Mass × Volume"],
-["விசை × பரப்பளவு","விசை / பரப்பளவு","பரப்பளவு / விசை","நிறை × கனஅளவு"],1
-),
-
-Q(
-"Which instrument measures atmospheric pressure?",
-"வளிமண்டல அழுத்தத்தை அளக்கும் கருவி எது?",
-["Thermometer","Barometer","Ammeter","Speedometer"],
-["வெப்பமானி","காற்றழுத்தமானி","மின்னோட்டமானி","வேகமானி"],1
-)
-
-],
-
-
-// GRADE 6
-
-"6|Science": [
-Q("Which organ pumps blood in our body?",
-"நமது உடலில் இரத்தத்தை பம்ப் செய்யும் உறுப்பு எது?",
-["Lungs","Heart","Brain","Kidney"],
-["நுரையீரல்","இதயம்","மூளை","சிறுநீரகம்"],1)
-],
-
-"6|Mathematics": [
-Q("What is 25 multiplied by 4?",
-"25 ஐ 4 ஆல் பெருக்கினால் என்ன?",
-["50","75","100","125"],
-["50","75","100","125"],2)
-],
-
-"6|English": [
-Q("What is the plural of child?",
-"Child என்பதன் பன்மைச் சொல் எது?",
-["Childs","Children","Childes","Childrens"],
-["Childs","Children","Childes","Childrens"],1)
-],
-
-"6|Social Science": [
-Q("Which planet do we live on?",
-"நாம் வாழும் கோள் எது?",
-["Mars","Earth","Venus","Jupiter"],
-["செவ்வாய்","பூமி","வெள்ளி","வியாழன்"],1)
-],
-
-
-// GRADE 7
-
-"7|Science": [
-Q("Which part of a plant prepares food?",
-"தாவரத்தின் எந்தப் பகுதி உணவைத் தயாரிக்கிறது?",
-["Root","Stem","Leaf","Flower"],
-["வேர்","தண்டு","இலை","மலர்"],2)
-],
-
-"7|Mathematics": [
-Q("What is the value of 3 squared?",
-"3 இன் வர்க்கம் என்ன?",
-["6","9","12","27"],
-["6","9","12","27"],1)
-],
-
-"7|English": [
-Q("Choose the past tense of go.",
-"Go என்பதன் இறந்தகாலச் சொல் எது?",
-["Going","Gone","Went","Goes"],
-["Going","Gone","Went","Goes"],2)
-],
-
-"7|Social Science": [
-Q("What is the imaginary line around the middle of Earth called?",
-"பூமியின் நடுப்பகுதியைச் சுற்றியுள்ள கற்பனைக் கோடு எது?",
-["Equator","Tropic of Cancer","Axis","Prime Meridian"],
-["நிலநடுக்கோடு","கடக ரேகை","அச்சு","முதன்மை நடுக்கோடு"],0)
-],
-
-
-// GRADE 8
-
-"8|Science": [
+"8|Science|Force and Pressure":[
 Q("Which force pulls objects towards Earth?",
 "பொருட்களை பூமியை நோக்கி இழுக்கும் விசை எது?",
-["Magnetic force","Gravitational force","Friction","Muscular force"],
-["காந்த விசை","ஈர்ப்பு விசை","உராய்வு விசை","தசை விசை"],1)
+["Magnetic","Gravity","Friction","Muscular"],
+["காந்த விசை","ஈர்ப்பு விசை","உராய்வு","தசை"],1),
+
+Q("What is the SI unit of pressure?",
+"அழுத்தத்தின் SI அலகு எது?",
+["Newton","Joule","Pascal","Watt"],
+["நியூட்டன்","ஜூல்","பாஸ்கல்","வாட்"],2),
+
+Q("Pressure is equal to:",
+"அழுத்தம் எதற்குச் சமம்?",
+["Force × Area","Force / Area","Area / Force","Mass × Volume"],
+["விசை × பரப்பளவு","விசை / பரப்பளவு","பரப்பளவு / விசை","நிறை × கனஅளவு"],1),
+
+Q("Which instrument measures atmospheric pressure?",
+"வளிமண்டல அழுத்தத்தை அளக்கும் கருவி எது?",
+["Thermometer","Barometer","Ammeter","Speedometer"],
+["வெப்பமானி","காற்றழுத்தமானி","மின்னோட்டமானி","வேகமானி"],1)
 ],
 
-"8|Mathematics": [
-Q("What is the square root of 144?",
+"6|Science":[Q("Which organ pumps blood?",
+"இரத்தத்தை பம்ப் செய்யும் உறுப்பு எது?",
+["Lungs","Heart","Brain","Kidney"],
+["நுரையீரல்","இதயம்","மூளை","சிறுநீரகம்"],1)],
+
+"6|Mathematics":[Q("What is 25 × 4?",
+"25 × 4 என்ன?",
+["50","75","100","125"],
+["50","75","100","125"],2)],
+
+"6|English":[Q("What is the plural of child?",
+"Child என்பதன் பன்மை என்ன?",
+["Childs","Children","Childes","Childrens"],
+["Childs","Children","Childes","Childrens"],1)],
+
+"6|Social Science":[Q("Which planet do we live on?",
+"நாம் வாழும் கோள் எது?",
+["Mars","Earth","Venus","Jupiter"],
+["செவ்வாய்","பூமி","வெள்ளி","வியாழன்"],1)],
+
+"7|Science":[Q("Which part of a plant prepares food?",
+"தாவரத்தில் உணவு தயாரிக்கும் பகுதி எது?",
+["Root","Stem","Leaf","Flower"],
+["வேர்","தண்டு","இலை","மலர்"],2)],
+
+"7|Mathematics":[Q("What is 3 squared?",
+"3 இன் வர்க்கம் என்ன?",
+["6","9","12","27"],["6","9","12","27"],1)],
+
+"7|English":[Q("What is the past tense of go?",
+"Go என்பதன் இறந்தகாலம் எது?",
+["Going","Gone","Went","Goes"],
+["Going","Gone","Went","Goes"],2)],
+
+"7|Social Science":[Q("What is the Earth's middle imaginary line?",
+"பூமியின் நடுவிலுள்ள கற்பனைக் கோடு எது?",
+["Equator","Axis","Prime Meridian","Tropic"],
+["நிலநடுக்கோடு","அச்சு","முதன்மை நடுக்கோடு","வெப்ப மண்டலம்"],0)],
+
+"8|Mathematics":[Q("What is the square root of 144?",
 "144 இன் வர்க்கமூலம் என்ன?",
-["10","11","12","14"],
-["10","11","12","14"],2)
-],
+["10","11","12","14"],["10","11","12","14"],2)],
 
-"8|English": [
-Q("Choose the synonym of happy.",
+"8|English":[Q("Choose the synonym of happy.",
 "Happy என்பதற்கான இணைச்சொல் எது?",
 ["Sad","Joyful","Angry","Weak"],
-["சோகமான","மகிழ்ச்சியான","கோபமான","பலவீனமான"],1)
-],
+["சோகமான","மகிழ்ச்சியான","கோபமான","பலவீனமான"],1)],
 
-"8|Social Science": [
-Q("Which is a renewable natural resource?",
-"புதுப்பிக்கக்கூடிய இயற்கை வளம் எது?",
-["Coal","Petroleum","Solar energy","Natural gas"],
-["நிலக்கரி","பெட்ரோலியம்","சூரிய ஆற்றல்","இயற்கை எரிவாயு"],2)
-],
+"8|Social Science":[Q("Which is renewable energy?",
+"புதுப்பிக்கக்கூடிய ஆற்றல் எது?",
+["Coal","Petroleum","Solar","Gas"],
+["நிலக்கரி","பெட்ரோலியம்","சூரிய ஆற்றல்","எரிவாயு"],2)],
 
-
-// GRADE 9
-
-"9|Science": [
-Q("What is the SI unit of force?",
+"9|Science":[Q("What is the SI unit of force?",
 "விசையின் SI அலகு எது?",
 ["Joule","Newton","Watt","Pascal"],
-["ஜூல்","நியூட்டன்","வாட்","பாஸ்கல்"],1)
-],
+["ஜூல்","நியூட்டன்","வாட்","பாஸ்கல்"],1)],
 
-"9|Mathematics": [
-Q("What is the value of 5 squared?",
+"9|Mathematics":[Q("What is 5 squared?",
 "5 இன் வர்க்கம் என்ன?",
-["10","15","20","25"],
-["10","15","20","25"],3)
-],
+["10","15","20","25"],["10","15","20","25"],3)],
 
-"9|English": [
-Q("Choose the correct article: ___ apple.",
-"சரியான முன்னிடைச் சொல்லைத் தேர்ந்தெடுக்கவும்: ___ apple.",
-["A","An","The only","No article"],
-["A","An","The only","முன்னிடைச் சொல் இல்லை"],1)
-],
+"9|English":[Q("Choose the correct article: ___ apple.",
+"சரியான முன்னிடைச் சொல் எது: ___ apple.",
+["A","An","The","No article"],
+["A","An","The","முன்னிடைச் சொல் இல்லை"],1)],
 
-"9|Social Science": [
-Q("Which is the capital of Tamil Nadu?",
+"9|Social Science":[Q("What is the capital of Tamil Nadu?",
 "தமிழ்நாட்டின் தலைநகரம் எது?",
 ["Madurai","Coimbatore","Chennai","Salem"],
-["மதுரை","கோயம்புத்தூர்","சென்னை","சேலம்"],2)
-],
+["மதுரை","கோயம்புத்தூர்","சென்னை","சேலம்"],2)],
 
-
-// GRADE 10
-
-"10|Science": [
-Q("What is the chemical formula of water?",
+"10|Science":[Q("What is the chemical formula of water?",
 "நீரின் வேதியியல் வாய்ப்பாடு என்ன?",
 ["CO2","H2O","O2","NaCl"],
-["CO2","H2O","O2","NaCl"],1)
-],
+["CO2","H2O","O2","NaCl"],1)],
 
-"10|Mathematics": [
-Q("What is the value of sin 30 degrees?",
+"10|Mathematics":[Q("What is sin 30 degrees?",
 "sin 30 பாகையின் மதிப்பு என்ன?",
 ["0","1/2","1","√3/2"],
-["0","1/2","1","√3/2"],1)
-],
+["0","1/2","1","√3/2"],1)],
 
-"10|English": [
-Q("What is the opposite of ancient?",
+"10|English":[Q("What is the opposite of ancient?",
 "Ancient என்பதன் எதிர்ச்சொல் எது?",
 ["Old","Modern","Historic","Past"],
-["பழமையான","நவீனமான","வரலாற்றுச் சிறப்புடைய","கடந்தகால"],1)
-],
+["பழமையான","நவீனமான","வரலாற்றுச் சிறப்புடைய","கடந்தகால"],1)],
 
-"10|Social Science": [
-Q("Who is known as the Father of the Indian Constitution?",
-"இந்திய அரசியலமைப்பின் தந்தை என்று அழைக்கப்படுபவர் யார்?",
-["Mahatma Gandhi","B. R. Ambedkar","Jawaharlal Nehru","Sardar Patel"],
-["மகாத்மா காந்தி","பி. ஆர். அம்பேத்கர்","ஜவஹர்லால் நேரு","சர்தார் பட்டேல்"],1)
-],
+"10|Social Science":[Q("Who is called the Father of the Indian Constitution?",
+"இந்திய அரசியலமைப்பின் தந்தை யார்?",
+["Gandhi","Ambedkar","Nehru","Patel"],
+["காந்தி","அம்பேத்கர்","நேரு","படேல்"],1)],
 
-
-// GRADE 11
-
-"11|Physics": [
-Q("What is the SI unit of acceleration?",
+"11|Physics":[Q("What is the SI unit of acceleration?",
 "முடுக்கத்தின் SI அலகு எது?",
 ["m/s","m/s²","m²/s","Newton"],
-["m/s","m/s²","m²/s","நியூட்டன்"],1)
-],
+["m/s","m/s²","m²/s","நியூட்டன்"],1)],
 
-"11|Chemistry": [
-Q("What is the atomic number of carbon?",
+"11|Chemistry":[Q("What is the atomic number of carbon?",
 "கார்பனின் அணு எண் என்ன?",
-["4","6","8","12"],
-["4","6","8","12"],1)
-],
+["4","6","8","12"],["4","6","8","12"],1)],
 
-"11|Mathematics": [
-Q("What is the value of sin 90 degrees?",
+"11|Mathematics":[Q("What is sin 90 degrees?",
 "sin 90 பாகையின் மதிப்பு என்ன?",
-["0","1/2","1","-1"],
-["0","1/2","1","-1"],2)
-],
+["0","1/2","1","-1"],["0","1/2","1","-1"],2)],
 
-"11|Biology": [
-Q("Which organelle is called the powerhouse of the cell?",
-"செல்லின் ஆற்றல் மையம் என்று அழைக்கப்படும் நுண்ணுறுப்பு எது?",
+"11|Biology":[Q("Which is the powerhouse of the cell?",
+"செல்லின் ஆற்றல் மையம் எது?",
 ["Nucleus","Mitochondria","Ribosome","Golgi body"],
-["உட்கரு","மைட்டோகாண்ட்ரியா","ரைபோசோம்","கால்கி உறுப்பு"],1)
-],
+["உட்கரு","மைட்டோகாண்ட்ரியா","ரைபோசோம்","கால்கி உறுப்பு"],1)],
 
-"11|Computer Science": [
-Q("What is the binary representation of decimal 5?",
-"தசம எண் 5 இன் இரும எண் வடிவம் எது?",
-["100","101","110","111"],
-["100","101","110","111"],1)
-],
+"11|Computer Science":[Q("Binary representation of decimal 5?",
+"தசம எண் 5 இன் இரும வடிவம் எது?",
+["100","101","110","111"],["100","101","110","111"],1)],
 
-"11|English": [
-Q("Which word is a noun?",
-"கீழே உள்ளவற்றில் பெயர்ச்சொல் எது?",
+"11|English":[Q("Which word is a noun?",
+"பெயர்ச்சொல் எது?",
 ["Quickly","Beautiful","Teacher","Run"],
-["விரைவாக","அழகான","ஆசிரியர்","ஓடு"],2)
-],
+["விரைவாக","அழகான","ஆசிரியர்","ஓடு"],2)],
 
-"11|Tamil": [
-Q("Which is a Tamil grammatical category?",
+"11|Tamil":[Q("Which is a Tamil grammatical category?",
 "தமிழ் இலக்கணப் பிரிவு எது?",
 ["எழுத்து","மின்சாரம்","வெப்பம்","அணு"],
-["எழுத்து","மின்சாரம்","வெப்பம்","அணு"],0)
-],
+["எழுத்து","மின்சாரம்","வெப்பம்","அணு"],0)],
 
-
-// GRADE 12
-
-"12|Physics": [
-Q("What is the SI unit of electric current?",
+"12|Physics":[Q("What is the SI unit of electric current?",
 "மின்னோட்டத்தின் SI அலகு எது?",
 ["Volt","Ohm","Ampere","Watt"],
-["வோல்ட்","ஓம்","ஆம்பியர்","வாட்"],2)
-],
+["வோல்ட்","ஓம்","ஆம்பியர்","வாட்"],2)],
 
-"12|Chemistry": [
-Q("What is the pH of a neutral solution at 25°C?",
-"25°C வெப்பநிலையில் நடுநிலைக் கரைசலின் pH மதிப்பு என்ன?",
-["0","5","7","14"],
-["0","5","7","14"],2)
-],
+"12|Chemistry":[Q("What is the pH of a neutral solution at 25°C?",
+"25°C இல் நடுநிலைக் கரைசலின் pH என்ன?",
+["0","5","7","14"],["0","5","7","14"],2)],
 
-"12|Mathematics": [
-Q("What is the derivative of x squared?",
+"12|Mathematics":[Q("Derivative of x squared?",
 "x வர்க்கத்தின் வகைக்கெழு என்ன?",
-["x","2x","x³","2"],
-["x","2x","x³","2"],1)
-],
+["x","2x","x³","2"],["x","2x","x³","2"],1)],
 
-"12|Biology": [
-Q("Which molecule carries genetic information?",
+"12|Biology":[Q("Which molecule carries genetic information?",
 "மரபுத் தகவலைக் கொண்டு செல்லும் மூலக்கூறு எது?",
 ["DNA","Glucose","Water","Starch"],
-["DNA","குளுக்கோஸ்","நீர்","மாவுச்சத்து"],0)
-],
+["DNA","குளுக்கோஸ்","நீர்","மாவுச்சத்து"],0)],
 
-"12|Computer Science": [
-Q("Which Python symbol is used for equality comparison?",
-"Python இல் சமத்துவத்தை ஒப்பிடப் பயன்படும் குறியீடு எது?",
+"12|Computer Science":[Q("Which Python operator checks equality?",
+"Python இல் சமத்துவத்தைச் சரிபார்க்கும் குறியீடு எது?",
 ["=","==","!=","+="],
-["=","==","!=","+="],1)
-],
+["=","==","!=","+="],1)],
 
-"12|English": [
-Q("Choose the correct passive voice: They built a house.",
-"They built a house என்பதன் சரியான செயப்பாட்டு வினை வடிவம் எது?",
+"12|English":[Q("Choose the passive voice: They built a house.",
+"They built a house என்பதன் செயப்பாட்டு வடிவம் எது?",
 ["A house was built by them.","A house is building.","They were built.","A house builds them."],
-["A house was built by them.","A house is building.","They were built.","A house builds them."],0)
-],
+["A house was built by them.","A house is building.","They were built.","A house builds them."],0)],
 
-"12|Tamil": [
-Q("Which is a type of Tamil literary work?",
-"தமிழ் இலக்கிய வகைகளில் ஒன்று எது?",
+"12|Tamil":[Q("Which is a Tamil literary form?",
+"தமிழ் இலக்கிய வகை எது?",
 ["காப்பியம்","மின்னோட்டம்","அழுத்தம்","திசைவேகம்"],
-["காப்பியம்","மின்னோட்டம்","அழுத்தம்","திசைவேகம்"],0)
-]
+["காப்பியம்","மின்னோட்டம்","அழுத்தம்","திசைவேகம்"],0)]
 
 };
 
 
-// =====================================
-// 4. VARIABLES
-// =====================================
+// =================================================
+// 3. GRADE SELECTION
+// =================================================
 
-let bleDevice = null;
-let bleCharacteristic = null;
+const gradeEl = document.getElementById("grade");
+const subjectEl = document.getElementById("subject");
+const topicEl = document.getElementById("topic");
 
-let cameraStream = null;
-let faceLandmarker = null;
-let cameraRunning = false;
+function updateSubjects() {
 
-let lastDirection = "";
-let lastDirectionSent = 0;
+  subjectEl.innerHTML = "";
 
-let currentQuestion = null;
-let questionIndex = 0;
-let selectedAnswer = -1;
+  subjects[gradeEl.value].forEach(s => {
+    const op = document.createElement("option");
+    op.value = s;
+    op.textContent = s;
+    subjectEl.appendChild(op);
+  });
 
-
-// =====================================
-// 5. GRADE / SUBJECT / TOPIC SELECTION
-// =====================================
-
-const gradeSelect = document.getElementById("grade");
-const subjectSelect = document.getElementById("subject");
-const topicSelect = document.getElementById("topic");
-const languageSelect = document.getElementById("language");
+  updateTopics();
+}
 
 function updateTopics() {
 
-  const grade = gradeSelect.value;
+  topicEl.innerHTML = "";
 
-  subjectSelect.innerHTML = "";
+  (topics[gradeEl.value][subjectEl.value] || [])
+    .forEach(t => {
+      const op = document.createElement("option");
+      op.value = t;
+      op.textContent = t;
+      topicEl.appendChild(op);
+    });
 
-  subjectData[grade].forEach(subject => {
-    const option = document.createElement("option");
-    option.value = subject;
-    option.textContent = subject;
-    subjectSelect.appendChild(option);
-  });
-
-  updateTopicList();
+  updateSelection();
 }
 
-function updateTopicList() {
+function updateSelection() {
 
-  const grade = gradeSelect.value;
-  const subject = subjectSelect.value;
-
-  const topics = topicData[grade][subject] || [];
-
-  topicSelect.innerHTML = "";
-
-  topics.forEach(topic => {
-    const option = document.createElement("option");
-    option.value = topic;
-    option.textContent = topic;
-    topicSelect.appendChild(option);
-  });
-
-  updateSummary();
+  document.getElementById("selectionStatus").textContent =
+    "Grade " + gradeEl.value + " | " +
+    subjectEl.value + " | " +
+    topicEl.value + " | " +
+    document.getElementById("language").value;
 }
 
-function updateSummary() {
-  document.getElementById("selectionSummary").textContent =
-    "Grade " + gradeSelect.value +
-    " | " + subjectSelect.value +
-    " | " + topicSelect.value +
-    " | " + languageSelect.value;
-}
+gradeEl.addEventListener("change",updateSubjects);
+subjectEl.addEventListener("change",updateTopics);
+topicEl.addEventListener("change",updateSelection);
+document.getElementById("language")
+  .addEventListener("change",updateSelection);
 
-gradeSelect.addEventListener("change", updateTopics);
-subjectSelect.addEventListener("change", updateTopicList);
-topicSelect.addEventListener("change", updateSummary);
-languageSelect.addEventListener("change", updateSummary);
-
-updateTopics();
+updateSubjects();
 
 
-// =====================================
-// 6. BLUETOOTH CONNECTION
-// =====================================
+// =================================================
+// 4. BLUETOOTH
+// =================================================
+
+let bleDevice = null;
+let bleCharacteristic = null;
 
 async function connectESP32() {
 
   try {
 
     if (!navigator.bluetooth) {
-      alert("Use Chrome with Bluetooth support and an HTTPS website.");
+      alert("Use Chrome on Android or supported desktop Chrome.");
       return;
     }
 
     bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [{name:"STUDENT_ENGAGEMENT"}],
-      optionalServices: [
+      filters:[{name:"STUDENT_ENGAGEMENT"}],
+      optionalServices:[
         "12345678-1234-1234-1234-123456789000"
       ]
-    });
-
-    bleDevice.addEventListener("gattserverdisconnected", () => {
-      bleCharacteristic = null;
-      document.getElementById("bleStatus").textContent =
-        "ESP32 disconnected";
     });
 
     const server = await bleDevice.gatt.connect();
@@ -749,76 +675,52 @@ async function connectESP32() {
 
     bleCharacteristic.addEventListener(
       "characteristicvaluechanged",
-      handleESP32Message
+      receiveESP32
     );
 
     document.getElementById("bleStatus").textContent =
-      "Connected to " + bleDevice.name;
+      "Connected to ESP32";
 
-  } catch(error) {
+  } catch(e) {
 
     document.getElementById("bleStatus").textContent =
-      "Bluetooth error: " + error.message;
-
+      "BLE error: " + e.message;
   }
 }
 
+async function sendESP32(message) {
 
-async function sendToESP32(message) {
-
-  if (!bleCharacteristic) {
-    document.getElementById("bleStatus").textContent =
-      "Please connect ESP32 first";
-    return;
-  }
+  if (!bleCharacteristic) return;
 
   try {
 
-    const data = new TextEncoder().encode(message);
+    const bytes = new TextEncoder().encode(message);
 
     if (bleCharacteristic.properties.write) {
-      await bleCharacteristic.writeValueWithResponse(data);
+      await bleCharacteristic.writeValueWithResponse(bytes);
     } else {
-      await bleCharacteristic.writeValueWithoutResponse(data);
+      await bleCharacteristic.writeValueWithoutResponse(bytes);
     }
 
-  } catch(error) {
-
-    document.getElementById("bleStatus").textContent =
-      "Send error: " + error.message;
-
+  } catch(e) {
+    console.log("BLE send error",e);
   }
 }
 
-
-// =====================================
-// 7. RECEIVE ESP32 DATA
-// =====================================
-
-function handleESP32Message(event) {
+function receiveESP32(event) {
 
   const message = new TextDecoder().decode(
     event.target.value
   ).trim();
 
-  document.getElementById("systemStatus").textContent = message;
+  if (message.startsWith("STATUS:")) {
 
-  if (message === "RECOVERY") {
-    showQuestion();
-  }
+    const p = message.split(":");
 
-  if (message === "RESULT:CORRECT") {
-    document.getElementById("answerResult").textContent =
-      "Correct answer!";
-  }
-
-  if (message === "RESULT:WRONG") {
-    document.getElementById("answerResult").textContent =
-      "Wrong answer!";
-  }
-
-  if (message === "RECOVERY_TIMEOUT") {
-    document.getElementById("quiz").style.display = "none";
+    document.getElementById("score").textContent = p[1];
+    document.getElementById("quizCount").textContent = p[2];
+    document.getElementById("temp").textContent = p[3];
+    document.getElementById("humidity").textContent = p[4];
   }
 
   if (message.startsWith("SCORE:")) {
@@ -827,182 +729,367 @@ function handleESP32Message(event) {
   }
 
   if (message.startsWith("QUIZCOUNT:")) {
-    document.getElementById("count").textContent =
+    document.getElementById("quizCount").textContent =
       message.split(":")[1];
   }
-
-  if (message.startsWith("STATUS:")) {
-    const parts = message.split(":");
-
-    document.getElementById("score").textContent = parts[1];
-    document.getElementById("count").textContent = parts[2];
-    document.getElementById("temp").textContent = parts[3];
-    document.getElementById("humidity").textContent = parts[4];
-  }
 }
-
-
-// =====================================
-// 8. START CLASS
-// =====================================
 
 function startClass() {
-
-  if (!bleCharacteristic) {
-    alert("Connect ESP32 first.");
-    return;
-  }
-
-  questionIndex = 0;
-
-  document.getElementById("score").textContent = "0";
-  document.getElementById("count").textContent = "0";
-  document.getElementById("quiz").style.display = "none";
-
-  sendToESP32("START");
+  sendESP32("START");
+  resetSeatStates();
 }
 
 
-// =====================================
-// 9. DISPLAY RECOVERY QUESTION
-// =====================================
+// =================================================
+// 5. SEATING PLAN: 40 STUDENTS / 6 ROWS
+// =================================================
 
-function showQuestion() {
+// Seats are arranged 7,7,7,7,6,6.
+// Camera image coordinates are divided into row bands.
+// Row 1 is the top image band.
 
-  const grade = gradeSelect.value;
-  const subject = subjectSelect.value;
-  const topic = topicSelect.value;
+const rowSeats = [7,7,7,7,6,6];
 
-  const topicKey = grade + "|" + subject + "|" + topic;
-  const subjectKey = grade + "|" + subject;
+const seatState = {};
+const turnedSince = {};
+const lastVoiceTime = {};
 
-  // Prefer exact topic questions.
-  // Otherwise use the grade and subject sample question.
-  const questions =
-    questionBank[topicKey] ||
-    questionBank[subjectKey];
+let faceLandmarker = null;
+let cameraStream = null;
+let cameraRunning = false;
+let lastCameraFrame = 0;
 
-  document.getElementById("quiz").style.display = "block";
-  document.getElementById("answerResult").textContent = "";
+for (let r=1; r<=6; r++) {
+  for (let s=1; s<=rowSeats[r-1]; s++) {
 
-  if (!questions || questions.length === 0) {
+    const id = "R" + r + "S" + s;
 
-    document.getElementById("questionText").textContent =
-      "No questions are available for this selection.";
+    seatState[id] = "missing";
+    turnedSince[id] = 0;
+    lastVoiceTime[id] = 0;
+  }
+}
 
-    document.getElementById("answerOptions").innerHTML = "";
-    currentQuestion = null;
+
+// =================================================
+// 6. BUILD SEAT DASHBOARD
+// =================================================
+
+function buildSeats() {
+
+  const grid = document.getElementById("seatGrid");
+  grid.innerHTML = "";
+
+  for (let r=1; r<=6; r++) {
+
+    const title = document.createElement("div");
+    title.className = "rowTitle";
+    title.textContent = "ROW " + r;
+    grid.appendChild(title);
+
+    for (let s=1; s<=rowSeats[r-1]; s++) {
+
+      const id = "R" + r + "S" + s;
+
+      const cell = document.createElement("div");
+      cell.className = "seat missing";
+      cell.id = id;
+
+      cell.innerHTML =
+        "<strong>R" + r + " S" + s + "</strong>" +
+        "No face";
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function updateSeat(id,status) {
+
+  seatState[id] = status;
+
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.className = "seat " + status;
+
+  let text = status;
+
+  if (status === "forward") text = "Forward";
+  if (status === "left") text = "Turned Left";
+  if (status === "right") text = "Turned Right";
+  if (status === "alert") text = "Alert";
+  if (status === "missing") text = "No face";
+
+  el.innerHTML =
+    "<strong>" + id.replace("S"," - Seat ") + "</strong>" +
+    text;
+}
+
+buildSeats();
+
+function resetSeatStates() {
+
+  for (const id in seatState) {
+    turnedSince[id] = 0;
+    updateSeat(id,"missing");
+  }
+
+  updateAlertList();
+}
+
+
+// =================================================
+// 7. VOICE ANNOUNCEMENT
+// =================================================
+
+function speak(text) {
+
+  if (!document.getElementById("voiceEnabled").checked) {
     return;
   }
 
-  currentQuestion =
-    questions[questionIndex % questions.length];
-
-  questionIndex++;
-  selectedAnswer = -1;
-
-  const language = languageSelect.value;
-
-  let questionText = "";
-
-  if (language === "English") {
-    questionText = currentQuestion.en;
-  }
-  else if (language === "Tamil") {
-    questionText = currentQuestion.ta;
-  }
-  else {
-    questionText =
-      currentQuestion.en + "\n\n" + currentQuestion.ta;
+  if (!("speechSynthesis" in window)) {
+    return;
   }
 
-  document.getElementById("questionText").textContent =
-    questionText;
+  window.speechSynthesis.cancel();
 
-  const optionsDiv = document.getElementById("answerOptions");
-  optionsDiv.innerHTML = "";
+  const speech = new SpeechSynthesisUtterance(text);
 
-  currentQuestion.optionsEn.forEach((option,index) => {
+  speech.lang =
+    document.getElementById("voiceLanguage").value;
 
-    const label = document.createElement("label");
-    label.className = "option";
+  speech.rate = 0.9;
+  speech.pitch = 1;
 
-    const radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "answer";
-    radio.value = index;
+  window.speechSynthesis.speak(speech);
+}
 
-    radio.addEventListener("change", () => {
-      selectedAnswer = index;
-    });
+function testVoice() {
 
-    label.appendChild(radio);
+  const language =
+    document.getElementById("voiceLanguage").value;
 
-    let optionText = option;
+  if (language === "ta-IN") {
+    speak("மாணவர்களே, தயவுசெய்து முன்புறம் பாருங்கள்");
+  } else {
+    speak("Students, please face the front.");
+  }
+}
 
-    if (language === "Tamil") {
-      optionText = currentQuestion.optionsTa[index];
+function stopVoice() {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function announceSeat(id,direction) {
+
+  const now = Date.now();
+
+  // Avoid repeated announcement for same seat.
+  if (now - lastVoiceTime[id] < 15000) return;
+
+  lastVoiceTime[id] = now;
+
+  const parts = id.match(/R(\d+)S(\d+)/);
+
+  const row = parts[1];
+  const seat = parts[2];
+
+  const language =
+    document.getElementById("voiceLanguage").value;
+
+  let message;
+
+  if (language === "ta-IN") {
+
+    message =
+      "வரிசை " + row +
+      ", இருக்கை " + seat +
+      ", தயவுசெய்து முன்புறம் பாருங்கள்";
+
+  } else {
+
+    message =
+      "Row " + row +
+      ", Seat " + seat +
+      ", please face the front";
+
+  }
+
+  speak(message);
+
+  sendESP32("SEAT_ALERT:" + id);
+}
+
+
+// =================================================
+// 8. MAP FACE TO APPROXIMATE SEAT
+// =================================================
+
+function assignSeat(cx,cy) {
+
+  // This is a simple image-grid mapping.
+  // Real classroom seating may need calibration.
+
+  const row = Math.min(
+    6,
+    Math.max(1,Math.floor(cy * 6) + 1)
+  );
+
+  const capacity = rowSeats[row-1];
+
+  const seat = Math.min(
+    capacity,
+    Math.max(1,Math.floor(cx * capacity) + 1)
+  );
+
+  return "R" + row + "S" + seat;
+}
+
+
+// =================================================
+// 9. DETECT HEAD DIRECTION
+// =================================================
+
+function getDirection(points) {
+
+  const nose = points[1];
+  const leftEye = points[33];
+  const rightEye = points[263];
+
+  const middle =
+    (leftEye.x + rightEye.x) / 2;
+
+  const width =
+    Math.abs(rightEye.x - leftEye.x);
+
+  if (width < 0.0001) return "forward";
+
+  const offset = (nose.x - middle) / width;
+
+  // Depending on camera mirroring and position,
+  // these labels may need reversing during calibration.
+
+  if (offset > 0.15) return "left";
+  if (offset < -0.15) return "right";
+
+  return "forward";
+}
+
+
+// =================================================
+// 10. PROCESS ALL FACES
+// =================================================
+
+function processFaces(faceLandmarks) {
+
+  const now = Date.now();
+
+  const seen = new Set();
+
+  for (const face of faceLandmarks) {
+
+    const xs = face.map(p => p.x);
+    const ys = face.map(p => p.y);
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+
+    const seat = assignSeat(cx,cy);
+    const direction = getDirection(face);
+
+    seen.add(seat);
+
+    if (direction === "forward") {
+
+      turnedSince[seat] = 0;
+      updateSeat(seat,"forward");
     }
 
-    if (language === "Both") {
-      optionText =
-        option + " / " + currentQuestion.optionsTa[index];
+    else {
+
+      if (!turnedSince[seat]) {
+        turnedSince[seat] = now;
+      }
+
+      const elapsed = now - turnedSince[seat];
+
+      if (elapsed >= 5000) {
+
+        updateSeat(seat,"alert");
+
+        if (
+          document.getElementById("automaticAlert").checked
+        ) {
+          announceSeat(seat,direction);
+        }
+
+      } else {
+
+        updateSeat(seat,direction);
+      }
     }
+  }
 
-    label.appendChild(
-      document.createTextNode(" " + optionText)
-    );
+  // Seats without a detected face are marked missing.
+  for (const id in seatState) {
 
-    optionsDiv.appendChild(label);
+    if (!seen.has(id)) {
 
-  });
+      turnedSince[id] = 0;
+      updateSeat(id,"missing");
+    }
+  }
 
+  document.getElementById("faceCount").textContent =
+    faceLandmarks.length;
+
+  const turned = Object.keys(seatState).filter(
+    id => seatState[id] === "alert"
+  );
+
+  document.getElementById("turnedCount").textContent =
+    turned.length;
+
+  updateAlertList();
 }
 
 
-// =====================================
-// 10. SUBMIT ANSWER
-// =====================================
+// =================================================
+// 11. ALERT LIST
+// =================================================
 
-async function submitAnswer() {
+function updateAlertList() {
 
-  if (!currentQuestion) {
-    alert("No question available.");
-    return;
-  }
+  const alerts = Object.keys(seatState).filter(
+    id => seatState[id] === "alert"
+  );
 
-  if (selectedAnswer < 0) {
-    alert("Please select an answer.");
-    return;
-  }
-
-  const correct =
-    selectedAnswer === currentQuestion.correct;
-
-  document.getElementById("answerResult").textContent =
-    correct ? "Correct answer!" : "Incorrect answer!";
-
-  await sendToESP32(correct ? "ANSWER:1" : "ANSWER:0");
-
-  document.getElementById("quiz").style.display = "none";
+  document.getElementById("alertList").textContent =
+    alerts.length
+      ? "Turned-head alerts: " + alerts.join(", ")
+      : "No turned-head alerts";
 }
 
 
-// =====================================
-// 11. CAMERA START
-// =====================================
+// =================================================
+// 12. START CAMERA AND MEDIAPIPE
+// =================================================
 
 async function startCamera() {
 
   try {
 
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
-      throw new Error("Camera requires HTTPS and browser permission.");
-    }
-
     document.getElementById("cameraStatus").textContent =
-      "Loading camera AI model...";
+      "Loading AI face detection model...";
 
     const vision = await import(
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs"
@@ -1019,127 +1106,92 @@ async function startCamera() {
         {
           baseOptions: {
             modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
           },
+
           runningMode: "VIDEO",
-          numFaces: 1
+
+          // Maximum requested face count.
+          // Actual detection depends on camera and device performance.
+          numFaces: 40
         }
       );
 
     cameraStream =
       await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: {
+          facingMode: "environment",
+          width: {ideal: 1920},
+          height: {ideal: 1080}
+        },
         audio: false
       });
 
     const video = document.getElementById("video");
 
     video.srcObject = cameraStream;
+
     await video.play();
 
     cameraRunning = true;
-    lastDirection = "";
+
+    resetSeatStates();
 
     document.getElementById("cameraStatus").textContent =
-      "Camera monitoring started";
+      "Camera started. Multiple-face detection running.";
 
-    detectFace();
+    requestAnimationFrame(detectFrame);
 
-  } catch(error) {
+  } catch(e) {
 
     document.getElementById("cameraStatus").textContent =
-      "Camera error: " + error.message;
+      "Camera error: " + e.message;
 
   }
 }
 
 
-// =====================================
-// 12. LEFT / RIGHT DETECTION
-// =====================================
+// =================================================
+// 13. CAMERA DETECTION LOOP
+// =================================================
 
-function detectFace() {
+function detectFrame() {
 
-  if (!cameraRunning || !faceLandmarker) return;
+  if (!cameraRunning) return;
 
   const video = document.getElementById("video");
 
   if (video.readyState >= 2) {
 
-    const result = faceLandmarker.detectForVideo(
-      video,
-      performance.now()
-    );
+    const now = performance.now();
 
-    const faces = result.faceLandmarks || [];
+    if (now - lastCameraFrame > 250) {
 
-    let direction = "NO_FACE";
+      lastCameraFrame = now;
 
-    if (faces.length > 0) {
+      const result =
+        faceLandmarker.detectForVideo(video,now);
 
-      const points = faces[0];
+      const faces = result.faceLandmarks || [];
 
-      const nose = points[1];
-      const leftEye = points[33];
-      const rightEye = points[263];
-
-      const eyeMiddle =
-        (leftEye.x + rightEye.x) / 2;
-
-      const faceWidth =
-        Math.abs(rightEye.x - leftEye.x);
-
-      if (faceWidth > 0) {
-
-        const offset =
-          (nose.x - eyeMiddle) / faceWidth;
-
-        // Corrected front-camera direction labels.
-        if (offset > 0.12) {
-          direction = "LEFT";
-        }
-        else if (offset < -0.12) {
-          direction = "RIGHT";
-        }
-        else {
-          direction = "FORWARD";
-        }
-      }
+      processFaces(faces);
     }
-
-    document.getElementById("cameraStatus").textContent =
-      "Faces detected: " + faces.length +
-      " | Head direction: " + direction;
-
-    const now = Date.now();
-
-    if (
-      direction !== lastDirection ||
-      now - lastDirectionSent > 1000
-    ) {
-
-      sendToESP32(direction);
-
-      lastDirection = direction;
-      lastDirectionSent = now;
-    }
-
   }
 
-  requestAnimationFrame(detectFace);
+  requestAnimationFrame(detectFrame);
 }
 
 
-// =====================================
-// 13. STOP CAMERA
-// =====================================
+// =================================================
+// 14. STOP CAMERA
+// =================================================
 
 function stopCamera() {
 
   cameraRunning = false;
 
   if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
   }
 
@@ -1148,18 +1200,143 @@ function stopCamera() {
   document.getElementById("cameraStatus").textContent =
     "Camera stopped";
 
-  sendToESP32("NO_FACE");
+  document.getElementById("faceCount").textContent = "0";
+
+  resetSeatStates();
+
+  sendESP32("CLASS_NORMAL");
 }
 
 
-// =====================================
-// 14. MAKE FUNCTIONS AVAILABLE TO BUTTONS
-// =====================================
+// =================================================
+// 15. RECOVERY QUIZ
+// =================================================
+
+let currentQuestion = null;
+let questionIndex = {};
+
+function showQuestion() {
+
+  const key =
+    gradeEl.value + "|" +
+    subjectEl.value + "|" +
+    topicEl.value;
+
+  const fallback =
+    gradeEl.value + "|" + subjectEl.value;
+
+  const bank = questions[key] || questions[fallback];
+
+  if (!bank || !bank.length) {
+    alert("No question is available for this selection.");
+    return;
+  }
+
+  if (questionIndex[key] === undefined) {
+    questionIndex[key] = 0;
+  }
+
+  currentQuestion =
+    bank[questionIndex[key] % bank.length];
+
+  questionIndex[key]++;
+
+  const lang =
+    document.getElementById("language").value;
+
+  let text = currentQuestion.en;
+
+  if (lang === "Tamil") {
+    text = currentQuestion.ta;
+  }
+
+  if (lang === "Both") {
+    text += "\n\n" + currentQuestion.ta;
+  }
+
+  document.getElementById("questionText").textContent = text;
+
+  const options = document.getElementById("answerOptions");
+  options.innerHTML = "";
+
+  currentQuestion.oe.forEach((option,i) => {
+
+    let label = document.createElement("label");
+    label.style.display = "block";
+    label.style.padding = "9px";
+    label.style.margin = "5px";
+    label.style.background = "#eaf0f8";
+    label.style.borderRadius = "7px";
+
+    let radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "answer";
+    radio.value = i;
+
+    label.appendChild(radio);
+
+    let text = option;
+
+    if (lang === "Tamil") {
+      text = currentQuestion.ot[i];
+    }
+
+    if (lang === "Both") {
+      text += " / " + currentQuestion.ot[i];
+    }
+
+    label.appendChild(document.createTextNode(" " + text));
+    options.appendChild(label);
+  });
+
+  document.getElementById("quiz").style.display = "block";
+  document.getElementById("answerResult").textContent = "";
+}
+
+async function submitAnswer() {
+
+  if (!currentQuestion) return;
+
+  const selected = document.querySelector(
+    'input[name="answer"]:checked'
+  );
+
+  if (!selected) {
+    alert("Select an answer.");
+    return;
+  }
+
+  const correct =
+    Number(selected.value) === currentQuestion.correct;
+
+  document.getElementById("answerResult").textContent =
+    correct ? "Correct answer!" : "Incorrect answer!";
+
+  await sendESP32(correct ? "ANSWER:1" : "ANSWER:0");
+
+  if (correct) {
+    speak(
+      document.getElementById("voiceLanguage").value === "ta-IN"
+      ? "சரியான பதில்"
+      : "Correct answer"
+    );
+  }
+
+  document.getElementById("quiz").style.display = "none";
+}
+
+
+// =================================================
+// 16. BUTTON FUNCTIONS
+// =================================================
 
 window.connectESP32 = connectESP32;
 window.startClass = startClass;
 window.startCamera = startCamera;
 window.stopCamera = stopCamera;
+window.testVoice = testVoice;
+window.stopVoice = stopVoice;
+window.showQuestion = showQuestion;
 window.submitAnswer = submitAnswer;
 
 </script>
