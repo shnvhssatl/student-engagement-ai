@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,6 +106,10 @@ button {
 .left, .right, .alert {
   background: #fee2e2;
   border-color: #fca5a5;
+}
+.speaking {
+  background: #dbeafe;
+  border-color: #60a5fa;
 }
 .missing {
   background: #e2e8f0;
@@ -263,6 +268,9 @@ Faces detected: <strong id="faceCount">0</strong>
 </div>
 <div class="status">
 Turned seats: <strong id="turnedCount">0</strong>
+</div>
+<div class="status">
+Lip movement: <strong id="lipCount">0</strong>
 </div>
 </div>
 
@@ -758,6 +766,11 @@ let cameraStream = null;
 let cameraRunning = false;
 let lastCameraFrame = 0;
 
+// Short time-series for detecting repeated mouth opening/closing.
+// MediaPipe's jawOpen blendshape is sampled for each detected face.
+const mouthHistory = {};
+let currentLipMovingSeats = new Set();
+
 for (let r=1; r<=6; r++) {
   for (let s=1; s<=rowSeats[r-1]; s++) {
 
@@ -766,6 +779,7 @@ for (let r=1; r<=6; r++) {
     seatState[id] = "missing";
     turnedSince[id] = 0;
     lastVoiceTime[id] = 0;
+    mouthHistory[id] = [];
   }
 }
 
@@ -818,6 +832,7 @@ function updateSeat(id,status) {
   if (status === "left") text = "Turned Left";
   if (status === "right") text = "Turned Right";
   if (status === "alert") text = "Alert";
+  if (status === "speaking") text = "Lip moving";
   if (status === "missing") text = "No face";
 
   el.innerHTML =
@@ -831,6 +846,7 @@ function resetSeatStates() {
 
   for (const id in seatState) {
     turnedSince[id] = 0;
+    mouthHistory[id] = [];
     updateSeat(id,"missing");
   }
 
@@ -980,16 +996,61 @@ function getDirection(points) {
 
 
 // =================================================
-// 10. PROCESS ALL FACES
+// 10. LIP MOVEMENT ESTIMATION
 // =================================================
 
-function processFaces(faceLandmarks) {
+// Reads MediaPipe's jawOpen blendshape for one detected face.
+// Repeated changes over a short window are treated as possible lip movement.
+function getJawOpenScore(blendshapeCategories) {
+  if (!blendshapeCategories) return 0;
+
+  const jaw = blendshapeCategories.find(
+    item => item.categoryName === "jawOpen"
+  );
+
+  return jaw ? jaw.score : 0;
+}
+
+function detectLipMovement(seat, jawOpen, now) {
+  const history = mouthHistory[seat] || [];
+
+  history.push({ time: now, value: jawOpen });
+
+  // Keep approximately the most recent 1.5 seconds.
+  while (history.length && now - history[0].time > 1500) {
+    history.shift();
+  }
+
+  mouthHistory[seat] = history;
+
+  if (history.length < 4) return false;
+
+  const values = history.map(item => item.value);
+  const range = Math.max(...values) - Math.min(...values);
+
+  let totalChange = 0;
+  for (let i = 1; i < values.length; i++) {
+    totalChange += Math.abs(values[i] - values[i - 1]);
+  }
+
+  // Thresholds reduce false triggers from a nearly motionless open mouth.
+  return range >= 0.10 && totalChange >= 0.22;
+}
+
+
+// =================================================
+// 11. PROCESS ALL FACES
+// =================================================
+
+function processFaces(faceLandmarks, faceBlendshapes = []) {
 
   const now = Date.now();
 
   const seen = new Set();
+  currentLipMovingSeats = new Set();
 
-  for (const face of faceLandmarks) {
+  for (let faceIndex = 0; faceIndex < faceLandmarks.length; faceIndex++) {
+    const face = faceLandmarks[faceIndex];
 
     const xs = face.map(p => p.x);
     const ys = face.map(p => p.y);
@@ -1005,12 +1066,22 @@ function processFaces(faceLandmarks) {
     const seat = assignSeat(cx,cy);
     const direction = getDirection(face);
 
+    const blendshapeCategories =
+      faceBlendshapes[faceIndex]?.categories || [];
+
+    const jawOpen = getJawOpenScore(blendshapeCategories);
+    const lipMoving = detectLipMovement(seat, jawOpen, now);
+
     seen.add(seat);
+
+    if (lipMoving) {
+      currentLipMovingSeats.add(seat);
+    }
 
     if (direction === "forward") {
 
       turnedSince[seat] = 0;
-      updateSeat(seat,"forward");
+      updateSeat(seat, lipMoving ? "speaking" : "forward");
     }
 
     else {
@@ -1033,7 +1104,7 @@ function processFaces(faceLandmarks) {
 
       } else {
 
-        updateSeat(seat,direction);
+        updateSeat(seat, lipMoving ? "speaking" : direction);
       }
     }
   }
@@ -1044,6 +1115,7 @@ function processFaces(faceLandmarks) {
     if (!seen.has(id)) {
 
       turnedSince[id] = 0;
+      mouthHistory[id] = [];
       updateSeat(id,"missing");
     }
   }
@@ -1057,6 +1129,9 @@ function processFaces(faceLandmarks) {
 
   document.getElementById("turnedCount").textContent =
     turned.length;
+
+  document.getElementById("lipCount").textContent =
+    currentLipMovingSeats.size;
 
   updateAlertList();
 }
@@ -1109,6 +1184,9 @@ async function startCamera() {
           },
 
           runningMode: "VIDEO",
+
+          // Required for jawOpen score used by lip movement detection.
+          outputFaceBlendshapes: true,
 
           // Maximum requested face count.
           // Actual detection depends on camera and device performance.
@@ -1172,8 +1250,9 @@ function detectFrame() {
         faceLandmarker.detectForVideo(video,now);
 
       const faces = result.faceLandmarks || [];
+      const blendshapes = result.faceBlendshapes || [];
 
-      processFaces(faces);
+      processFaces(faces, blendshapes);
     }
   }
 
@@ -1200,6 +1279,7 @@ function stopCamera() {
     "Camera stopped";
 
   document.getElementById("faceCount").textContent = "0";
+  document.getElementById("lipCount").textContent = "0";
 
   resetSeatStates();
 
