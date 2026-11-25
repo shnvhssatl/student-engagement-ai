@@ -3,1342 +3,482 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smart Student Engagement System</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Student Engagement Recovery System</title>
 <style>
-* { box-sizing: border-box; }
-
-body {
-  font-family: Arial, sans-serif;
-  background: #f1f5f9;
-  margin: 0;
-  padding: 12px;
-  color: #172033;
-}
-
-.container {
-  max-width: 1000px;
-  margin: auto;
-}
-
-.card {
-  background: white;
-  padding: 14px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 7px #0001;
-}
-
-h2 {
-  color: #174ea6;
-  font-size: 19px;
-  margin-top: 4px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-label {
-  font-weight: bold;
-  font-size: 13px;
-  display: block;
-  margin-top: 6px;
-}
-
-select, button {
-  width: 100%;
-  padding: 10px;
-  border-radius: 7px;
-  margin-top: 5px;
-  font-size: 14px;
-}
-
-select {
-  border: 1px solid #bbb;
-  background: white;
-}
-
-button {
-  background: #1769d2;
-  color: white;
-  border: 0;
-  font-weight: bold;
-}
-
-.green { background: #15803d; }
-.red { background: #b91c1c; }
-.grey { background: #475569; }
-
-#video {
-  width: 100%;
-  max-height: 400px;
-  background: #111;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-#seatGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-}
-
-.seat {
-  padding: 9px 2px;
-  border-radius: 7px;
-  text-align: center;
-  font-size: 11px;
-  background: #dcfce7;
-  border: 1px solid #86efac;
-  min-height: 55px;
-}
-
-.seat strong {
-  display: block;
-  font-size: 12px;
-}
-
-.forward { background: #dcfce7; }
-.left, .right, .alert {
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-.missing {
-  background: #e2e8f0;
-  border-color: #cbd5e1;
-}
-
-.rowTitle {
-  grid-column: 1 / -1;
-  font-weight: bold;
-  margin-top: 7px;
-  font-size: 13px;
-}
-
-.status {
-  padding: 10px;
-  background: #e8f0fe;
-  border-radius: 8px;
-  margin-top: 8px;
-  overflow-wrap: anywhere;
-}
-
-.small {
-  font-size: 12px;
-  color: #555;
-}
-
-@media(max-width:480px) {
-  #seatGrid { gap: 3px; }
-  .seat { font-size: 9px; padding: 6px 1px; }
-  .seat strong { font-size: 10px; }
-}
+:root{font-family:Arial,sans-serif;color:#172033;background:#f3f6fb}
+*{box-sizing:border-box}body{margin:0;padding:18px}
+header{background:#142d4e;color:white;padding:18px;border-radius:14px;margin-bottom:16px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:18px;margin:0 0 12px}
+.small{font-size:13px;color:#64748b}.panel{background:white;border:1px solid #dce4ef;border-radius:12px;padding:14px;margin-bottom:14px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label{font-size:13px;font-weight:bold;display:block;margin-bottom:5px}
+select,input,button{padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px}
+button{background:#1d4ed8;color:white;border:0;cursor:pointer;font-weight:bold}
+button.secondary{background:#475569}button.warn{background:#b45309}button.danger{background:#b91c1c}
+button:disabled{opacity:.45;cursor:not-allowed}
+.field{min-width:145px}.stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}
+.stat{padding:13px;border-radius:10px;background:#eff6ff}.stat b{font-size:25px;display:block;margin-top:4px}
+.main{display:grid;grid-template-columns:minmax(300px,1.2fr) minmax(300px,1fr);gap:14px}
+.videoWrap{position:relative;width:100%;background:#0f172a;border-radius:10px;overflow:hidden;min-height:180px}
+video{display:block;width:100%;height:auto;min-height:180px;object-fit:contain}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(30px,1fr));gap:5px}
+.seat{border:1px solid #cbd5e1;border-radius:7px;padding:8px 3px;text-align:center;font-size:11px;background:#ecfdf5;min-height:48px}
+.seat.talking{background:#fef3c7;border-color:#f59e0b}
+.seat.turned{background:#fee2e2;border-color:#ef4444}
+.seat.both{background:#fce7f3;border-color:#db2777}
+.seat.missing{background:#e2e8f0;color:#64748b}
+.rowLabel{font-size:12px;color:#64748b;margin:8px 0 4px}
+.log{max-height:220px;overflow:auto;font-size:13px;line-height:1.6}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#e2e8f0;font-size:12px;margin:2px}
+.notice{background:#fff7ed;border-left:4px solid #f59e0b;padding:10px;border-radius:6px;font-size:13px}
+@media(max-width:850px){.main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
-
 <body>
-<div class="container">
+<header>
+<h1>AI-Powered Smart Student Engagement Recovery System</h1>
+<div>40 Students · 6 Rows · Multi-face · Lip Movement · Seat Calibration</div>
+</header>
 
-<div class="card">
-<h2>AI-Powered Smart Student Engagement Recovery System</h2>
-<p>Teacher Dashboard – 40 Students</p>
-
-<div class="grid">
-
-<div>
-<label>Grade</label>
-<select id="grade">
-<option>6</option>
-<option>7</option>
-<option selected>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
-</select>
+<section class="panel">
+<h2>Teacher Settings</h2>
+<div class="controls">
+  <div class="field"><label>Grade</label><select id="grade">
+    <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+  </select></div>
+  <div class="field"><label>Subject</label><select id="subject">
+    <option>Science</option><option>Mathematics</option><option>English</option><option>Social Science</option>
+    <option>Physics</option><option>Chemistry</option><option>Biology</option><option>Computer Science</option><option>Tamil</option>
+  </select></div>
+  <div class="field"><label>Today's topic</label><input id="topic" value="Today's lesson"></div>
+  <div class="field"><label>Voice language</label><select id="language"><option value="en-IN">English</option><option value="ta-IN">தமிழ்</option></select></div>
+  <div class="field"><label>Seat match radius</label><select id="radius"><option value="0.07">Tight</option><option value="0.10" selected>Normal</option><option value="0.14">Wide</option></select></div>
 </div>
+</section>
 
-<div>
-<label>Subject</label>
-<select id="subject"></select>
+<section class="panel">
+<h2>Camera and calibration</h2>
+<div class="controls">
+<button id="cameraBtn">Start camera</button>
+<button id="calibrateBtn" class="warn" disabled>Start seat calibration</button>
+<button id="cancelCalBtn" class="secondary" disabled>Cancel calibration</button>
+<button id="saveCalBtn" class="secondary">Save calibration</button>
+<button id="clearCalBtn" class="danger">Clear calibration</button>
+<button id="detectBtn" disabled>Start AI monitoring</button>
 </div>
-
-<div>
-<label>Today's Topic</label>
-<select id="topic"></select>
-</div>
-
-<div>
-<label>Question Language</label>
-<select id="language">
-<option value="English">English</option>
-<option value="Tamil">Tamil</option>
-<option value="Both">English + Tamil</option>
-</select>
-</div>
-
-</div>
-<div id="selectionStatus" class="status"></div>
-</div>
-
-
-<!-- BLUETOOTH -->
-
-<div class="card">
-<h2>ESP32 Connection</h2>
-
-<div class="grid">
-<button onclick="connectESP32()">Connect ESP32</button>
-<button class="green" onclick="startClass()">Start Class</button>
-</div>
-
-<div id="bleStatus" class="status">
-Bluetooth not connected
-</div>
-</div>
-
-
-<!-- CAMERA -->
-
-<div class="card">
-<h2>Classroom Camera</h2>
-
-<p class="small">
-Keep the camera facing the class. Allow camera access.
-Video processing is performed in the browser.
-</p>
-
-<div class="grid">
-<button onclick="startCamera()">Start Camera</button>
-<button class="grey" onclick="stopCamera()">Stop Camera</button>
-</div>
-
+<p id="calibrationText" class="small">Start the camera. Then calibrate by clicking the centre of each student's face in seat order: R1S1 to R1S7, then R2S1, and so on. Recalibrate when the camera position or seating layout changes.</p>
+<div class="notice">Calibration is for the current seating arrangement. Because students may change seats, repeat calibration at the beginning of a new seating arrangement. Click the centre of each visible face in the order shown by the prompt.</div>
+<div class="videoWrap" style="margin-top:12px">
 <video id="video" autoplay playsinline muted></video>
-
-<div id="cameraStatus" class="status">
-Camera stopped
+<canvas id="overlay"></canvas>
 </div>
+<div id="calibrationProgress" class="pill">Not calibrated</div>
+</section>
+
+<section class="stats">
+<div class="stat">Faces currently detected<b id="faceCount">0</b></div>
+<div class="stat">Possible talking<b id="talkCount">0</b></div>
+<div class="stat">Head turned<b id="turnCount">0</b></div>
+<div class="stat">Seats calibrated<b id="calCount">0/40</b></div>
+</section>
+
+<div class="main" style="margin-top:14px">
+<section class="panel">
+<h2>Live seat map</h2>
+<div id="seatMap"></div>
+<p class="small"><span class="pill">Green: no alert</span><span class="pill">Yellow: possible talking</span><span class="pill">Red: head turned</span><span class="pill">Pink: both</span><span class="pill">Grey: face not seen</span></p>
+</section>
+<section class="panel">
+<h2>Teacher alerts</h2>
+<div id="alerts" class="log">No alerts yet.</div>
+<hr style="border:0;border-top:1px solid #e2e8f0;margin:12px 0">
+<h2>Bluetooth connection</h2>
+<div class="controls">
+<button id="bleBtn">Connect ESP32 BLE</button>
+<button id="startClassBtn" class="secondary">Start class</button>
+<button id="resetBtn" class="secondary">Reset score</button>
 </div>
-
-
-<!-- VOICE -->
-
-<div class="card">
-<h2>Voice Alert Settings</h2>
-
-<label>Announcement Language</label>
-<select id="voiceLanguage">
-<option value="en-IN">English</option>
-<option value="ta-IN">Tamil</option>
-</select>
-
-<div class="grid">
-<button onclick="testVoice()">Test Voice</button>
-<button class="grey" onclick="stopVoice()">Stop Voice</button>
-</div>
-
-<label>
-<input type="checkbox" id="voiceEnabled" checked>
-Enable voice announcements
-</label>
-
-<label>
-<input type="checkbox" id="automaticAlert" checked>
-Enable automatic seat alerts
-</label>
-</div>
-
-
-<!-- CLASSROOM DASHBOARD -->
-
-<div class="card">
-<h2>Live Classroom Seating Dashboard</h2>
-
-<div class="grid">
-<div class="status">
-Faces detected: <strong id="faceCount">0</strong>
-</div>
-<div class="status">
-Turned seats: <strong id="turnedCount">0</strong>
-</div>
+<p id="bleStatus" class="small">ESP32 not connected</p>
+<p class="small">ESP32 name: STUDENT_ENGAGEMENT</p>
+<h2 style="margin-top:16px">Class status</h2>
+<div id="classStatus" class="small">Waiting for camera and calibration.</div>
+<div id="dhtStatus" class="small">Temperature: -- °C | Humidity: -- %</div>
+</section>
 </div>
 
-<p class="small">
-Row 1 is the top of the camera image. Seats are numbered
-left to right. Camera position must be calibrated to match
-the actual classroom.
-</p>
-
-<div id="seatGrid"></div>
-
-<div class="status" id="alertList">
-No alerts
-</div>
-</div>
-
-
-<!-- ESP32 STATUS -->
-
-<div class="card">
-<h2>Environmental Monitoring</h2>
-
-<div class="grid">
-<div class="status">
-Temperature: <strong id="temp">--</strong> °C
-</div>
-<div class="status">
-Humidity: <strong id="humidity">--</strong> %
-</div>
-<div class="status">
-Quiz score: <strong id="score">0</strong>
-</div>
-<div class="status">
-Questions: <strong id="quizCount">0</strong>
-</div>
-</div>
-</div>
-
-
-<!-- RECOVERY QUESTION -->
-
-<div class="card">
-<h2>Recovery Question</h2>
-
-<button onclick="showQuestion()">Test Recovery Question</button>
-
-<div id="quiz" style="display:none">
-<p id="questionText"></p>
-<div id="answerOptions"></div>
-<button onclick="submitAnswer()">Submit Answer</button>
-<div id="answerResult" class="status"></div>
-</div>
-</div>
-
-</div>
-
+<section class="panel">
+<h2>How this version identifies seats</h2>
+<p class="small">The teacher clicks each student's face centre during calibration. The browser stores the 40 seat-centre coordinates in this laptop's local storage. During monitoring, each detected face is matched to the nearest unused calibrated seat within the selected radius. If students change seats, recalibrate. This is seat-position mapping, not biometric identity recognition.</p>
+<p class="small">Lip movement is estimated visually from mouth landmarks. It reports “Possible Talking”; it does not record audio or prove that a student is speaking.</p>
+</section>
 
 <script type="module">
-
-// =================================================
-// 1. GRADE / SUBJECT / TOPIC DATA
-// =================================================
-
-const subjects = {
-"6":["Science","Mathematics","English","Social Science"],
-"7":["Science","Mathematics","English","Social Science"],
-"8":["Science","Mathematics","English","Social Science"],
-"9":["Science","Mathematics","English","Social Science"],
-"10":["Science","Mathematics","English","Social Science"],
-"11":["Physics","Chemistry","Mathematics","Biology",
-      "Computer Science","English","Tamil"],
-"12":["Physics","Chemistry","Mathematics","Biology",
-      "Computer Science","English","Tamil"]
-};
-
-const topics = {
-"6":{
-"Science":["Components of Food","Light and Shadows"],
-"Mathematics":["Knowing Our Numbers","Basic Geometry"],
-"English":["Prose","Grammar"],
-"Social Science":["The Universe","Our Earth"]
-},
-"7":{
-"Science":["Nutrition in Plants","Heat"],
-"Mathematics":["Number System","Measurements"],
-"English":["Prose","Tenses"],
-"Social Science":["Interior of the Earth","Resources"]
-},
-"8":{
-"Science":["Force and Pressure","Crop Production"],
-"Mathematics":["Rational Numbers","Linear Equations"],
-"English":["Prose","Grammar"],
-"Social Science":["Resources","Industries"]
-},
-"9":{
-"Science":["Motion","Matter Around Us"],
-"Mathematics":["Real Numbers","Algebra"],
-"English":["Prose","Grammar"],
-"Social Science":["Geography","History"]
-},
-"10":{
-"Science":["Chemical Reactions","Electricity"],
-"Mathematics":["Relations and Functions","Numbers and Sequences"],
-"English":["Prose","Grammar"],
-"Social Science":["Indian Constitution","World History"]
-},
-"11":{
-"Physics":["Units and Measurements","Laws of Motion"],
-"Chemistry":["Basic Concepts of Chemistry","Atomic Structure"],
-"Mathematics":["Sets","Basic Algebra"],
-"Biology":["Living World","Plant Kingdom"],
-"Computer Science":["Introduction to Computers","Number Systems"],
-"English":["Prose","Poetry"],
-"Tamil":["செய்யுள்","உரைநடை"]
-},
-"12":{
-"Physics":["Electrostatics","Current Electricity"],
-"Chemistry":["Metallurgy","p-Block Elements"],
-"Mathematics":["Applications of Matrices","Complex Numbers"],
-"Biology":["Reproduction in Organisms","Genetics"],
-"Computer Science":["Data Abstraction","Python Programming"],
-"English":["Prose","Poetry"],
-"Tamil":["செய்யுள்","உரைநடை"]
-}
-};
-
-
-// =================================================
-// 2. QUESTION BANK
-// =================================================
-
-function Q(en,ta,oe,ot,correct) {
-  return {en,ta,oe,ot,correct};
-}
-
-const questions = {
-
-"8|Science|Force and Pressure":[
-Q("Which force pulls objects towards Earth?",
-"பொருட்களை பூமியை நோக்கி இழுக்கும் விசை எது?",
-["Magnetic","Gravity","Friction","Muscular"],
-["காந்த விசை","ஈர்ப்பு விசை","உராய்வு","தசை"],1),
-
-Q("What is the SI unit of pressure?",
-"அழுத்தத்தின் SI அலகு எது?",
-["Newton","Joule","Pascal","Watt"],
-["நியூட்டன்","ஜூல்","பாஸ்கல்","வாட்"],2),
-
-Q("Pressure is equal to:",
-"அழுத்தம் எதற்குச் சமம்?",
-["Force × Area","Force / Area","Area / Force","Mass × Volume"],
-["விசை × பரப்பளவு","விசை / பரப்பளவு","பரப்பளவு / விசை","நிறை × கனஅளவு"],1),
-
-Q("Which instrument measures atmospheric pressure?",
-"வளிமண்டல அழுத்தத்தை அளக்கும் கருவி எது?",
-["Thermometer","Barometer","Ammeter","Speedometer"],
-["வெப்பமானி","காற்றழுத்தமானி","மின்னோட்டமானி","வேகமானி"],1)
-],
-
-"6|Science":[Q("Which organ pumps blood?",
-"இரத்தத்தை பம்ப் செய்யும் உறுப்பு எது?",
-["Lungs","Heart","Brain","Kidney"],
-["நுரையீரல்","இதயம்","மூளை","சிறுநீரகம்"],1)],
-
-"6|Mathematics":[Q("What is 25 × 4?",
-"25 × 4 என்ன?",
-["50","75","100","125"],
-["50","75","100","125"],2)],
-
-"6|English":[Q("What is the plural of child?",
-"Child என்பதன் பன்மை என்ன?",
-["Childs","Children","Childes","Childrens"],
-["Childs","Children","Childes","Childrens"],1)],
-
-"6|Social Science":[Q("Which planet do we live on?",
-"நாம் வாழும் கோள் எது?",
-["Mars","Earth","Venus","Jupiter"],
-["செவ்வாய்","பூமி","வெள்ளி","வியாழன்"],1)],
-
-"7|Science":[Q("Which part of a plant prepares food?",
-"தாவரத்தில் உணவு தயாரிக்கும் பகுதி எது?",
-["Root","Stem","Leaf","Flower"],
-["வேர்","தண்டு","இலை","மலர்"],2)],
-
-"7|Mathematics":[Q("What is 3 squared?",
-"3 இன் வர்க்கம் என்ன?",
-["6","9","12","27"],["6","9","12","27"],1)],
-
-"7|English":[Q("What is the past tense of go?",
-"Go என்பதன் இறந்தகாலம் எது?",
-["Going","Gone","Went","Goes"],
-["Going","Gone","Went","Goes"],2)],
-
-"7|Social Science":[Q("What is the Earth's middle imaginary line?",
-"பூமியின் நடுவிலுள்ள கற்பனைக் கோடு எது?",
-["Equator","Axis","Prime Meridian","Tropic"],
-["நிலநடுக்கோடு","அச்சு","முதன்மை நடுக்கோடு","வெப்ப மண்டலம்"],0)],
-
-"8|Mathematics":[Q("What is the square root of 144?",
-"144 இன் வர்க்கமூலம் என்ன?",
-["10","11","12","14"],["10","11","12","14"],2)],
-
-"8|English":[Q("Choose the synonym of happy.",
-"Happy என்பதற்கான இணைச்சொல் எது?",
-["Sad","Joyful","Angry","Weak"],
-["சோகமான","மகிழ்ச்சியான","கோபமான","பலவீனமான"],1)],
-
-"8|Social Science":[Q("Which is renewable energy?",
-"புதுப்பிக்கக்கூடிய ஆற்றல் எது?",
-["Coal","Petroleum","Solar","Gas"],
-["நிலக்கரி","பெட்ரோலியம்","சூரிய ஆற்றல்","எரிவாயு"],2)],
-
-"9|Science":[Q("What is the SI unit of force?",
-"விசையின் SI அலகு எது?",
-["Joule","Newton","Watt","Pascal"],
-["ஜூல்","நியூட்டன்","வாட்","பாஸ்கல்"],1)],
-
-"9|Mathematics":[Q("What is 5 squared?",
-"5 இன் வர்க்கம் என்ன?",
-["10","15","20","25"],["10","15","20","25"],3)],
-
-"9|English":[Q("Choose the correct article: ___ apple.",
-"சரியான முன்னிடைச் சொல் எது: ___ apple.",
-["A","An","The","No article"],
-["A","An","The","முன்னிடைச் சொல் இல்லை"],1)],
-
-"9|Social Science":[Q("What is the capital of Tamil Nadu?",
-"தமிழ்நாட்டின் தலைநகரம் எது?",
-["Madurai","Coimbatore","Chennai","Salem"],
-["மதுரை","கோயம்புத்தூர்","சென்னை","சேலம்"],2)],
-
-"10|Science":[Q("What is the chemical formula of water?",
-"நீரின் வேதியியல் வாய்ப்பாடு என்ன?",
-["CO2","H2O","O2","NaCl"],
-["CO2","H2O","O2","NaCl"],1)],
-
-"10|Mathematics":[Q("What is sin 30 degrees?",
-"sin 30 பாகையின் மதிப்பு என்ன?",
-["0","1/2","1","√3/2"],
-["0","1/2","1","√3/2"],1)],
-
-"10|English":[Q("What is the opposite of ancient?",
-"Ancient என்பதன் எதிர்ச்சொல் எது?",
-["Old","Modern","Historic","Past"],
-["பழமையான","நவீனமான","வரலாற்றுச் சிறப்புடைய","கடந்தகால"],1)],
-
-"10|Social Science":[Q("Who is called the Father of the Indian Constitution?",
-"இந்திய அரசியலமைப்பின் தந்தை யார்?",
-["Gandhi","Ambedkar","Nehru","Patel"],
-["காந்தி","அம்பேத்கர்","நேரு","படேல்"],1)],
-
-"11|Physics":[Q("What is the SI unit of acceleration?",
-"முடுக்கத்தின் SI அலகு எது?",
-["m/s","m/s²","m²/s","Newton"],
-["m/s","m/s²","m²/s","நியூட்டன்"],1)],
-
-"11|Chemistry":[Q("What is the atomic number of carbon?",
-"கார்பனின் அணு எண் என்ன?",
-["4","6","8","12"],["4","6","8","12"],1)],
-
-"11|Mathematics":[Q("What is sin 90 degrees?",
-"sin 90 பாகையின் மதிப்பு என்ன?",
-["0","1/2","1","-1"],["0","1/2","1","-1"],2)],
-
-"11|Biology":[Q("Which is the powerhouse of the cell?",
-"செல்லின் ஆற்றல் மையம் எது?",
-["Nucleus","Mitochondria","Ribosome","Golgi body"],
-["உட்கரு","மைட்டோகாண்ட்ரியா","ரைபோசோம்","கால்கி உறுப்பு"],1)],
-
-"11|Computer Science":[Q("Binary representation of decimal 5?",
-"தசம எண் 5 இன் இரும வடிவம் எது?",
-["100","101","110","111"],["100","101","110","111"],1)],
-
-"11|English":[Q("Which word is a noun?",
-"பெயர்ச்சொல் எது?",
-["Quickly","Beautiful","Teacher","Run"],
-["விரைவாக","அழகான","ஆசிரியர்","ஓடு"],2)],
-
-"11|Tamil":[Q("Which is a Tamil grammatical category?",
-"தமிழ் இலக்கணப் பிரிவு எது?",
-["எழுத்து","மின்சாரம்","வெப்பம்","அணு"],
-["எழுத்து","மின்சாரம்","வெப்பம்","அணு"],0)],
-
-"12|Physics":[Q("What is the SI unit of electric current?",
-"மின்னோட்டத்தின் SI அலகு எது?",
-["Volt","Ohm","Ampere","Watt"],
-["வோல்ட்","ஓம்","ஆம்பியர்","வாட்"],2)],
-
-"12|Chemistry":[Q("What is the pH of a neutral solution at 25°C?",
-"25°C இல் நடுநிலைக் கரைசலின் pH என்ன?",
-["0","5","7","14"],["0","5","7","14"],2)],
-
-"12|Mathematics":[Q("Derivative of x squared?",
-"x வர்க்கத்தின் வகைக்கெழு என்ன?",
-["x","2x","x³","2"],["x","2x","x³","2"],1)],
-
-"12|Biology":[Q("Which molecule carries genetic information?",
-"மரபுத் தகவலைக் கொண்டு செல்லும் மூலக்கூறு எது?",
-["DNA","Glucose","Water","Starch"],
-["DNA","குளுக்கோஸ்","நீர்","மாவுச்சத்து"],0)],
-
-"12|Computer Science":[Q("Which Python operator checks equality?",
-"Python இல் சமத்துவத்தைச் சரிபார்க்கும் குறியீடு எது?",
-["=","==","!=","+="],
-["=","==","!=","+="],1)],
-
-"12|English":[Q("Choose the passive voice: They built a house.",
-"They built a house என்பதன் செயப்பாட்டு வடிவம் எது?",
-["A house was built by them.","A house is building.","They were built.","A house builds them."],
-["A house was built by them.","A house is building.","They were built.","A house builds them."],0)],
-
-"12|Tamil":[Q("Which is a Tamil literary form?",
-"தமிழ் இலக்கிய வகை எது?",
-["காப்பியம்","மின்னோட்டம்","அழுத்தம்","திசைவேகம்"],
-["காப்பியம்","மின்னோட்டம்","அழுத்தம்","திசைவேகம்"],0)]
-
-};
-
-
-// =================================================
-// 3. GRADE SELECTION
-// =================================================
-
-const gradeEl = document.getElementById("grade");
-const subjectEl = document.getElementById("subject");
-const topicEl = document.getElementById("topic");
-
-function updateSubjects() {
-
-  subjectEl.innerHTML = "";
-
-  subjects[gradeEl.value].forEach(s => {
-    const op = document.createElement("option");
-    op.value = s;
-    op.textContent = s;
-    subjectEl.appendChild(op);
-  });
-
-  updateTopics();
-}
-
-function updateTopics() {
-
-  topicEl.innerHTML = "";
-
-  (topics[gradeEl.value][subjectEl.value] || [])
-    .forEach(t => {
-      const op = document.createElement("option");
-      op.value = t;
-      op.textContent = t;
-      topicEl.appendChild(op);
-    });
-
-  updateSelection();
-}
-
-function updateSelection() {
-
-  document.getElementById("selectionStatus").textContent =
-    "Grade " + gradeEl.value + " | " +
-    subjectEl.value + " | " +
-    topicEl.value + " | " +
-    document.getElementById("language").value;
-}
-
-gradeEl.addEventListener("change",updateSubjects);
-subjectEl.addEventListener("change",updateTopics);
-topicEl.addEventListener("change",updateSelection);
-document.getElementById("language")
-  .addEventListener("change",updateSelection);
-
-updateSubjects();
-
-
-// =================================================
-// 4. BLUETOOTH
-// =================================================
-
-let bleDevice = null;
-let bleCharacteristic = null;
-
-async function connectESP32() {
-
-  try {
-
-    if (!navigator.bluetooth) {
-      alert("Use Chrome on Android or supported desktop Chrome.");
-      return;
-    }
-
-    bleDevice = await navigator.bluetooth.requestDevice({
-      filters:[{name:"STUDENT_ENGAGEMENT"}],
-      optionalServices:[
-        "12345678-1234-1234-1234-123456789000"
-      ]
-    });
-
-    const server = await bleDevice.gatt.connect();
-
-    const service = await server.getPrimaryService(
-      "12345678-1234-1234-1234-123456789000"
-    );
-
-    bleCharacteristic = await service.getCharacteristic(
-      "12345678-1234-1234-1234-123456789001"
-    );
-
-    await bleCharacteristic.startNotifications();
-
-    bleCharacteristic.addEventListener(
-      "characteristicvaluechanged",
-      receiveESP32
-    );
-
-    document.getElementById("bleStatus").textContent =
-      "Connected to ESP32";
-
-  } catch(e) {
-
-    document.getElementById("bleStatus").textContent =
-      "BLE error: " + e.message;
-  }
-}
-
-async function sendESP32(message) {
-
-  if (!bleCharacteristic) return;
-
-  try {
-
-    const bytes = new TextEncoder().encode(message);
-
-    if (bleCharacteristic.properties.write) {
-      await bleCharacteristic.writeValueWithResponse(bytes);
-    } else {
-      await bleCharacteristic.writeValueWithoutResponse(bytes);
-    }
-
-  } catch(e) {
-    console.log("BLE send error",e);
-  }
-}
-
-function receiveESP32(event) {
-
-  const message = new TextDecoder().decode(
-    event.target.value
-  ).trim();
-
-  if (message.startsWith("STATUS:")) {
-
-    const p = message.split(":");
-
-    document.getElementById("score").textContent = p[1];
-    document.getElementById("quizCount").textContent = p[2];
-    document.getElementById("temp").textContent = p[3];
-    document.getElementById("humidity").textContent = p[4];
-  }
-
-  if (message.startsWith("SCORE:")) {
-    document.getElementById("score").textContent =
-      message.split(":")[1];
-  }
-
-  if (message.startsWith("QUIZCOUNT:")) {
-    document.getElementById("quizCount").textContent =
-      message.split(":")[1];
-  }
-}
-
-function startClass() {
-  sendESP32("START");
-  resetSeatStates();
-}
-
-
-// =================================================
-// 5. SEATING PLAN: 40 STUDENTS / 6 ROWS
-// =================================================
-
-// Seats are arranged 7,7,7,7,6,6.
-// Camera image coordinates are divided into row bands.
-// Row 1 is the top image band.
-
-const rowSeats = [7,7,7,7,6,6];
-
+import { FaceLandmarker, FilesetResolver } from
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const SERVICE_UUID = "12345678-1234-1234-1234-123456789000";
+const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-123456789001";
+const seatIds = [];
+[7,7,7,7,6,6].forEach((count, r) => {
+  for (let s=1; s<=count; s++) seatIds.push(`R${r+1}S${s}`);
+});
+
+const $ = id => document.getElementById(id);
+const video = $("video"), canvas = $("overlay"), ctx = canvas.getContext("2d");
+let stream = null, landmarker = null, monitoring = false, rafId = null;
+let calibrationMode = false, calibrationIndex = 0;
+let calibration = JSON.parse(localStorage.getItem("seatCalibration40") || "{}");
+let device = null, bleServer = null, bleCharacteristic = null;
+let lastVideoTime = -1, lastProcess = 0;
+let faceCountNow = 0;
 const seatState = {};
-const turnedSince = {};
-const lastVoiceTime = {};
+const speechQueue = [];
+let speaking = false;
 
-let faceLandmarker = null;
-let cameraStream = null;
-let cameraRunning = false;
-let lastCameraFrame = 0;
+for (const id of seatIds) seatState[id] = {
+  lastSeen: 0, direction: "forward", turnedSince: 0,
+  mouthOpen: false, transitions: [], talkingUntil: 0,
+  isTalking: false, isTurned: false, lastAlert: 0
+};
 
-for (let r=1; r<=6; r++) {
-  for (let s=1; s<=rowSeats[r-1]; s++) {
-
-    const id = "R" + r + "S" + s;
-
-    seatState[id] = "missing";
-    turnedSince[id] = 0;
-    lastVoiceTime[id] = 0;
-  }
-}
-
-
-// =================================================
-// 6. BUILD SEAT DASHBOARD
-// =================================================
-
-function buildSeats() {
-
-  const grid = document.getElementById("seatGrid");
-  grid.innerHTML = "";
-
-  for (let r=1; r<=6; r++) {
-
-    const title = document.createElement("div");
-    title.className = "rowTitle";
-    title.textContent = "ROW " + r;
-    grid.appendChild(title);
-
-    for (let s=1; s<=rowSeats[r-1]; s++) {
-
-      const id = "R" + r + "S" + s;
-
-      const cell = document.createElement("div");
-      cell.className = "seat missing";
-      cell.id = id;
-
-      cell.innerHTML =
-        "<strong>R" + r + " S" + s + "</strong>" +
-        "No face";
-
-      grid.appendChild(cell);
+function buildSeatMap(){
+  const host = $("seatMap"); host.innerHTML = "";
+  let index = 0;
+  for(let r=1;r<=6;r++){
+    const label=document.createElement("div");
+    label.className="rowLabel"; label.textContent=`ROW ${r}`; host.appendChild(label);
+    const row=document.createElement("div"); row.className="grid";
+    const n=[7,7,7,7,6,6][r-1];
+    for(let s=1;s<=n;s++){
+      const id=`R${r}S${s}`;
+      const cell=document.createElement("div");
+      cell.className="seat"; cell.id="seat_"+id;
+      cell.textContent=id+"\\nWaiting";
+      row.appendChild(cell); index++;
     }
+    host.appendChild(row);
+  }
+}
+buildSeatMap();
+
+function updateSeatUI(id, now){
+  const st=seatState[id], el=$("seat_"+id);
+  if(!el) return;
+  const seen = now - st.lastSeen < 1800;
+  el.className="seat";
+  let label="No face";
+  if(seen){
+    if(st.isTalking && st.isTurned){el.classList.add("both");label="Talking + turned";}
+    else if(st.isTalking){el.classList.add("talking");label="Possible talking";}
+    else if(st.isTurned){el.classList.add("turned");label="Head turned";}
+    else label="Forward";
+  } else el.classList.add("missing");
+  el.textContent=id+"\\n"+label;
+}
+
+function addLog(message){
+  const line=document.createElement("div");
+  line.textContent=`${new Date().toLocaleTimeString()} — ${message}`;
+  $("alerts").prepend(line);
+}
+
+function speak(text){
+  speechQueue.push(text);
+  if(!speaking) speakNext();
+}
+function speakNext(){
+  if(!speechQueue.length){speaking=false;return;}
+  speaking=true;
+  const utter=new SpeechSynthesisUtterance(speechQueue.shift());
+  utter.lang=$("language").value;
+  utter.rate=0.95;
+  utter.onend=()=>{speaking=false;speakNext();};
+  utter.onerror=()=>{speaking=false;speakNext();};
+  speechSynthesis.speak(utter);
+}
+
+async function sendBLE(message){
+  if(!bleCharacteristic) return;
+  try{
+    const data=new TextEncoder().encode(message);
+    if(bleCharacteristic.writeValueWithoutResponse){
+      await bleCharacteristic.writeValueWithoutResponse(data);
+    }else{
+      await bleCharacteristic.writeValue(data);
+    }
+  }catch(e){ $("bleStatus").textContent="BLE send error: "+e.message; }
+}
+
+function updateSummary(now){
+  const talking=seatIds.filter(id=>seatState[id].isTalking && now-seatState[id].lastSeen<1800);
+  const turned=seatIds.filter(id=>seatState[id].isTurned && now-seatState[id].lastSeen<1800);
+  $("talkCount").textContent=talking.length;
+  $("turnCount").textContent=turned.length;
+  $("faceCount").textContent=faceCountNow;
+  $("calCount").textContent=Object.keys(calibration).length+"/40";
+  for(const id of seatIds) updateSeatUI(id,now);
+  $("classStatus").textContent =
+    `Grade ${$("grade").value} · ${$("subject").value} · ${$("topic").value} · ${$("language").value}`;
+}
+
+async function startCamera(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},
+      audio:false
+    });
+    video.srcObject=stream;
+    await video.play();
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    $("cameraBtn").textContent="Camera running";
+    $("calibrateBtn").disabled=false;
+    $("detectBtn").disabled=false;
+    $("bleStatus").textContent="Camera ready. Connect ESP32 separately.";
+    const vision=await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+    );
+    landmarker=await FaceLandmarker.createFromOptions(vision,{
+      baseOptions:{
+        modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+        delegate:"CPU"
+      },
+      runningMode:"VIDEO",
+      numFaces:40,
+      minFaceDetectionConfidence:0.45,
+      minFacePresenceConfidence:0.45,
+      minTrackingConfidence:0.45
+    });
+    $("calibrationText").textContent="Camera and AI ready. Start seat calibration and click face centres in the displayed seat order.";
+  }catch(e){
+    alert("Camera/AI start failed: "+e.message+"\\nUse Chrome or Edge and allow camera permission. Open this page through localhost or HTTPS.");
   }
 }
 
-function updateSeat(id,status) {
-
-  seatState[id] = status;
-
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  el.className = "seat " + status;
-
-  let text = status;
-
-  if (status === "forward") text = "Forward";
-  if (status === "left") text = "Turned Left";
-  if (status === "right") text = "Turned Right";
-  if (status === "alert") text = "Alert";
-  if (status === "missing") text = "No face";
-
-  el.innerHTML =
-    "<strong>" + id.replace("S"," - Seat ") + "</strong>" +
-    text;
+function startCalibration(){
+  if(!video.videoWidth){alert("Start camera first.");return;}
+  calibration={}; calibrationIndex=0; calibrationMode=true;
+  $("cancelCalBtn").disabled=false;
+  $("calibrateBtn").disabled=true;
+  updateCalibrationText();
+  drawOverlay();
 }
-
-buildSeats();
-
-function resetSeatStates() {
-
-  for (const id in seatState) {
-    turnedSince[id] = 0;
-    updateSeat(id,"missing");
-  }
-
-  updateAlertList();
-}
-
-
-// =================================================
-// 7. VOICE ANNOUNCEMENT
-// =================================================
-
-function speak(text) {
-
-  if (!document.getElementById("voiceEnabled").checked) {
+function updateCalibrationText(){
+  if(calibrationIndex>=seatIds.length){
+    $("calibrationText").textContent="All 40 seat centres captured. Click Save calibration.";
+    calibrationMode=false;
+    $("cancelCalBtn").disabled=true;
+    $("calibrateBtn").disabled=false;
     return;
   }
-
-  if (!("speechSynthesis" in window)) {
-    return;
+  $("calibrationText").textContent=`Calibration ${calibrationIndex+1}/40: Ask the student at ${seatIds[calibrationIndex]} to remain seated, then click the centre of that student's face in the camera image.`;
+  $("calibrationProgress").textContent=`Next seat: ${seatIds[calibrationIndex]} (${calibrationIndex}/40 completed)`;
+}
+function cancelCalibration(){
+  calibrationMode=false; calibrationIndex=0;
+  $("cancelCalBtn").disabled=true; $("calibrateBtn").disabled=false;
+  $("calibrationText").textContent="Calibration cancelled. Existing saved calibration remains unchanged until you save a new one.";
+  drawOverlay();
+}
+canvas.addEventListener("click",e=>{
+  if(!calibrationMode)return;
+  const rect=canvas.getBoundingClientRect();
+  const x=(e.clientX-rect.left)/rect.width;
+  const y=(e.clientY-rect.top)/rect.height;
+  const id=seatIds[calibrationIndex];
+  calibration[id]={x,y};
+  calibrationIndex++;
+  updateCalibrationText(); drawOverlay();
+});
+function drawOverlay(){
+  if(!canvas.width)return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(const [id,p] of Object.entries(calibration)){
+    const x=p.x*canvas.width,y=p.y*canvas.height;
+    ctx.beginPath();ctx.arc(x,y,Math.max(7,canvas.width/100),0,Math.PI*2);
+    ctx.strokeStyle="#22c55e";ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle="#22c55e";ctx.fill();
+    ctx.fillStyle="#ffffff";ctx.font=`${Math.max(14,canvas.width/65)}px Arial`;
+    ctx.fillText(id,x+8,y-8);
   }
-
-  window.speechSynthesis.cancel();
-
-  const speech = new SpeechSynthesisUtterance(text);
-
-  speech.lang =
-    document.getElementById("voiceLanguage").value;
-
-  speech.rate = 0.9;
-  speech.pitch = 1;
-
-  window.speechSynthesis.speak(speech);
-}
-
-function testVoice() {
-
-  const language =
-    document.getElementById("voiceLanguage").value;
-
-  if (language === "ta-IN") {
-    speak("மாணவர்களே, தயவுசெய்து முன்புறம் பாருங்கள்");
-  } else {
-    speak("Students, please face the front.");
+  if(calibrationMode && calibrationIndex<40){
+    ctx.fillStyle="#facc15";ctx.font=`bold ${Math.max(18,canvas.width/45)}px Arial`;
+    ctx.fillText("CLICK "+seatIds[calibrationIndex],15,35);
   }
 }
-
-function stopVoice() {
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
+function saveCalibration(){
+  if(Object.keys(calibration).length!==40){
+    alert(`Calibration incomplete: ${Object.keys(calibration).length}/40. Capture all 40 seat centres first.`);return;
   }
+  localStorage.setItem("seatCalibration40",JSON.stringify(calibration));
+  $("calibrationProgress").textContent="Calibration saved (40/40)";
+  addLog("Seat calibration saved on this laptop.");
+  drawOverlay();
+}
+function clearCalibration(){
+  if(!confirm("Clear all saved seat calibration points?"))return;
+  calibration={};localStorage.removeItem("seatCalibration40");
+  $("calCount").textContent="0/40";$("calibrationProgress").textContent="Not calibrated";
+  drawOverlay();
 }
 
-function announceSeat(id,direction) {
-
-  const now = Date.now();
-
-  // Avoid repeated announcement for same seat.
-  if (now - lastVoiceTime[id] < 15000) return;
-
-  lastVoiceTime[id] = now;
-
-  const parts = id.match(/R(\d+)S(\d+)/);
-
-  const row = parts[1];
-  const seat = parts[2];
-
-  const language =
-    document.getElementById("voiceLanguage").value;
-
-  let message;
-
-  if (language === "ta-IN") {
-
-    message =
-      "வரிசை " + row +
-      ", இருக்கை " + seat +
-      ", தயவுசெய்து முன்புறம் பாருங்கள்";
-
-  } else {
-
-    message =
-      "Row " + row +
-      ", Seat " + seat +
-      ", please face the front";
-
-  }
-
-  speak(message);
-
-  sendESP32("SEAT_ALERT:" + id);
-}
-
-
-// =================================================
-// 8. MAP FACE TO APPROXIMATE SEAT
-// =================================================
-
-function assignSeat(cx,cy) {
-
-  // This is a simple image-grid mapping.
-  // Real classroom seating may need calibration.
-
-  const row = Math.min(
-    6,
-    Math.max(1,Math.floor(cy * 6) + 1)
-  );
-
-  const capacity = rowSeats[row-1];
-
-  const seat = Math.min(
-    capacity,
-    Math.max(1,Math.floor(cx * capacity) + 1)
-  );
-
-  return "R" + row + "S" + seat;
-}
-
-
-// =================================================
-// 9. DETECT HEAD DIRECTION
-// =================================================
-
-function getDirection(points) {
-
-  const nose = points[1];
-  const leftEye = points[33];
-  const rightEye = points[263];
-
-  const middle =
-    (leftEye.x + rightEye.x) / 2;
-
-  const width =
-    Math.abs(rightEye.x - leftEye.x);
-
-  if (width < 0.0001) return "forward";
-
-  const offset = (nose.x - middle) / width;
-
-  // Depending on camera mirroring and position,
-  // these labels may need reversing during calibration.
-
-  if (offset > 0.15) return "left";
-  if (offset < -0.15) return "right";
-
+function getDirection(face){
+  const nose=face[1], leftEye=face[33], rightEye=face[263];
+  const mid=(leftEye.x+rightEye.x)/2;
+  const width=Math.abs(rightEye.x-leftEye.x);
+  if(width<0.0001)return "forward";
+  const offset=(nose.x-mid)/width;
+  if(offset>0.13)return "right";
+  if(offset< -0.13)return "left";
   return "forward";
 }
-
-
-// =================================================
-// 10. PROCESS ALL FACES
-// =================================================
-
-function processFaces(faceLandmarks) {
-
-  const now = Date.now();
-
-  const seen = new Set();
-
-  for (const face of faceLandmarks) {
-
-    const xs = face.map(p => p.x);
-    const ys = face.map(p => p.y);
-
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-
-    const cx = (minX + maxX) / 2;
-    const cy = (minY + maxY) / 2;
-
-    const seat = assignSeat(cx,cy);
-    const direction = getDirection(face);
-
-    seen.add(seat);
-
-    if (direction === "forward") {
-
-      turnedSince[seat] = 0;
-      updateSeat(seat,"forward");
+function mouthRatio(face){
+  const up=face[13],low=face[14],left=face[61],right=face[291];
+  const vertical=Math.hypot(up.x-low.x,up.y-low.y);
+  const horizontal=Math.hypot(left.x-right.x,left.y-right.y);
+  return horizontal>0.0001?vertical/horizontal:0;
+}
+function updateLipState(id,face,now){
+  const st=seatState[id], ratio=mouthRatio(face);
+  // Hysteresis reduces rapid switching around one threshold.
+  if(!st.mouthOpen && ratio>0.16){
+    st.mouthOpen=true;st.transitions.push(now);
+  }else if(st.mouthOpen && ratio<0.10){
+    st.mouthOpen=false;st.transitions.push(now);
+  }
+  st.transitions=st.transitions.filter(t=>now-t<2600);
+  const transitions=st.transitions.length;
+  if(transitions>=4){
+    st.talkingUntil=now+1800;
+  }
+  st.isTalking=now<st.talkingUntil;
+}
+function updateHeadState(id,face,now){
+  const st=seatState[id],direction=getDirection(face);
+  st.direction=direction;
+  if(direction==="forward"){
+    st.turnedSince=0;
+    st.isTurned=false;
+  }else{
+    if(!st.turnedSince)st.turnedSince=now;
+    st.isTurned=(now-st.turnedSince)>=1800;
+  }
+}
+function assignFacesToSeats(faces,now){
+  const candidates=[];
+  const radius=Number($("radius").value);
+  for(let fi=0;fi<faces.length;fi++){
+    const nose=faces[fi][1];
+    for(const id of seatIds){
+      const p=calibration[id];if(!p)continue;
+      const d=Math.hypot(nose.x-p.x,nose.y-p.y);
+      if(d<=radius)candidates.push({fi,id,d});
     }
-
-    else {
-
-      if (!turnedSince[seat]) {
-        turnedSince[seat] = now;
-      }
-
-      const elapsed = now - turnedSince[seat];
-
-      if (elapsed >= 5000) {
-
-        updateSeat(seat,"alert");
-
-        if (
-          document.getElementById("automaticAlert").checked
-        ) {
-          announceSeat(seat,direction);
-        }
-
-      } else {
-
-        updateSeat(seat,direction);
+  }
+  candidates.sort((a,b)=>a.d-b.d);
+  const usedFaces=new Set(),usedSeats=new Set(),assignments=[];
+  for(const c of candidates){
+    if(usedFaces.has(c.fi)||usedSeats.has(c.id))continue;
+    usedFaces.add(c.fi);usedSeats.add(c.id);
+    assignments.push(c);
+  }
+  for(const a of assignments){
+    const id=a.id,face=faces[a.fi],st=seatState[id];
+    st.lastSeen=now;
+    updateLipState(id,face,now);
+    updateHeadState(id,face,now);
+    const isNewAlert=(st.isTalking||st.isTurned) && now-st.lastAlert>12000;
+    if(isNewAlert){
+      st.lastAlert=now;
+      if(st.isTalking && st.isTurned){
+        const msg=`${id}: possible talking and head turned`;
+        addLog(msg);speak(`${id.replace("R","Row ").replace("S"," seat ")}. Possible talking and head turned.`);
+        sendBLE("SEAT_TALK:"+id);sendBLE("SEAT_ALERT:"+id);
+      }else if(st.isTalking){
+        const msg=`${id}: possible talking`;
+        addLog(msg);speak(`${id.replace("R","Row ").replace("S"," seat ")}. Possible talking.`);
+        sendBLE("SEAT_TALK:"+id);
+      }else if(st.isTurned){
+        const msg=`${id}: head turned ${st.direction}`;
+        addLog(msg);speak(`${id.replace("R","Row ").replace("S"," seat ")}. Please face forward.`);
+        sendBLE("SEAT_ALERT:"+id);
       }
     }
   }
-
-  // Seats without a detected face are marked missing.
-  for (const id in seatState) {
-
-    if (!seen.has(id)) {
-
-      turnedSince[id] = 0;
-      updateSeat(id,"missing");
+}
+function processFrame(){
+  if(!monitoring||!landmarker)return;
+  const now=performance.now();
+  if(video.currentTime!==lastVideoTime && now-lastProcess>130){
+    lastVideoTime=video.currentTime;lastProcess=now;
+    const result=landmarker.detectForVideo(video,now);
+    const faces=result.faceLandmarks||[];
+    faceCountNow=faces.length;
+    if(Object.keys(calibration).length===40){
+      assignFacesToSeats(faces,now);
     }
+    updateSummary(now);drawOverlay();
   }
-
-  document.getElementById("faceCount").textContent =
-    faceLandmarks.length;
-
-  const turned = Object.keys(seatState).filter(
-    id => seatState[id] === "alert"
-  );
-
-  document.getElementById("turnedCount").textContent =
-    turned.length;
-
-  updateAlertList();
+  rafId=requestAnimationFrame(processFrame);
 }
-
-
-// =================================================
-// 11. ALERT LIST
-// =================================================
-
-function updateAlertList() {
-
-  const alerts = Object.keys(seatState).filter(
-    id => seatState[id] === "alert"
-  );
-
-  document.getElementById("alertList").textContent =
-    alerts.length
-      ? "Turned-head alerts: " + alerts.join(", ")
-      : "No turned-head alerts";
+function startMonitoring(){
+  if(!landmarker){alert("Start camera and wait for AI to load.");return;}
+  if(Object.keys(calibration).length!==40){
+    alert("Please calibrate all 40 seat positions first.");return;
+  }
+  monitoring=true;$("detectBtn").textContent="Stop AI monitoring";
+  addLog("AI monitoring started.");sendBLE("START");
+  processFrame();
 }
-
-
-// =================================================
-// 12. START CAMERA AND MEDIAPIPE
-// =================================================
-
-async function startCamera() {
-
-  try {
-
-    document.getElementById("cameraStatus").textContent =
-      "Loading AI face detection model...";
-
-    const vision = await import(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs"
-    );
-
-    const fileset =
-      await vision.FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-      );
-
-    faceLandmarker =
-      await vision.FaceLandmarker.createFromOptions(
-        fileset,
-        {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-          },
-
-          runningMode: "VIDEO",
-
-          // Maximum requested face count.
-          // Actual detection depends on camera and device performance.
-          numFaces: 40
+function stopMonitoring(){
+  monitoring=false;if(rafId)cancelAnimationFrame(rafId);
+  $("detectBtn").textContent="Start AI monitoring";
+  faceCountNow=0;updateSummary(performance.now());
+  addLog("AI monitoring stopped.");sendBLE("CLASS_NORMAL");
+}
+async function connectBLE(){
+  try{
+    device=await navigator.bluetooth.requestDevice({
+      filters:[{name:"STUDENT_ENGAGEMENT"}],
+      optionalServices:[SERVICE_UUID]
+    });
+    device.addEventListener("gattserverdisconnected",()=>{
+      bleCharacteristic=null;$("bleStatus").textContent="ESP32 disconnected";
+    });
+    bleServer=await device.gatt.connect();
+    const service=await bleServer.getPrimaryService(SERVICE_UUID);
+    bleCharacteristic=await service.getCharacteristic(CHARACTERISTIC_UUID);
+    if(bleCharacteristic.startNotifications){
+      await bleCharacteristic.startNotifications();
+      bleCharacteristic.addEventListener("characteristicvaluechanged",event=>{
+        const value=new TextDecoder().decode(event.target.value);
+        if(value.startsWith("STATUS:")){
+          const p=value.split(":");
+          $("dhtStatus").textContent=`Temperature: ${p[3]||"--"} °C | Humidity: ${p[4]||"--"} % | Score: ${p[1]||0}`;
         }
-      );
-
-    cameraStream =
-      await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment",
-          width: {ideal: 1920},
-          height: {ideal: 1080}
-        },
-        audio: false
       });
-
-    const video = document.getElementById("video");
-
-    video.srcObject = cameraStream;
-
-    await video.play();
-
-    cameraRunning = true;
-
-    resetSeatStates();
-
-    document.getElementById("cameraStatus").textContent =
-      "Camera started. Multiple-face detection running.";
-
-    requestAnimationFrame(detectFrame);
-
-  } catch(e) {
-
-    document.getElementById("cameraStatus").textContent =
-      "Camera error: " + e.message;
-
-  }
-}
-
-
-// =================================================
-// 13. CAMERA DETECTION LOOP
-// =================================================
-
-function detectFrame() {
-
-  if (!cameraRunning) return;
-
-  const video = document.getElementById("video");
-
-  if (video.readyState >= 2) {
-
-    const now = performance.now();
-
-    if (now - lastCameraFrame > 250) {
-
-      lastCameraFrame = now;
-
-      const result =
-        faceLandmarker.detectForVideo(video,now);
-
-      const faces = result.faceLandmarks || [];
-
-      processFaces(faces);
     }
-  }
-
-  requestAnimationFrame(detectFrame);
+    $("bleStatus").textContent="Connected to "+device.name;
+    addLog("ESP32 BLE connected.");
+  }catch(e){$("bleStatus").textContent="BLE connection failed: "+e.message;}
 }
 
+$("cameraBtn").addEventListener("click",startCamera);
+$("calibrateBtn").addEventListener("click",startCalibration);
+$("cancelCalBtn").addEventListener("click",cancelCalibration);
+$("saveCalBtn").addEventListener("click",saveCalibration);
+$("clearCalBtn").addEventListener("click",clearCalibration);
+$("detectBtn").addEventListener("click",()=>monitoring?stopMonitoring():startMonitoring());
+$("bleBtn").addEventListener("click",connectBLE);
+$("startClassBtn").addEventListener("click",()=>sendBLE("START"));
+$("resetBtn").addEventListener("click",()=>sendBLE("RESET"));
 
-// =================================================
-// 14. STOP CAMERA
-// =================================================
-
-function stopCamera() {
-
-  cameraRunning = false;
-
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-    cameraStream = null;
-  }
-
-  document.getElementById("video").srcObject = null;
-
-  document.getElementById("cameraStatus").textContent =
-    "Camera stopped";
-
-  document.getElementById("faceCount").textContent = "0";
-
-  resetSeatStates();
-
-  sendESP32("CLASS_NORMAL");
+window.addEventListener("resize",drawOverlay);
+if(Object.keys(calibration).length) {
+  $("calibrationProgress").textContent=`Saved calibration: ${Object.keys(calibration).length}/40`;
 }
-
-
-// =================================================
-// 15. RECOVERY QUIZ
-// =================================================
-
-let currentQuestion = null;
-let questionIndex = {};
-
-function showQuestion() {
-
-  const key =
-    gradeEl.value + "|" +
-    subjectEl.value + "|" +
-    topicEl.value;
-
-  const fallback =
-    gradeEl.value + "|" + subjectEl.value;
-
-  const bank = questions[key] || questions[fallback];
-
-  if (!bank || !bank.length) {
-    alert("No question is available for this selection.");
-    return;
-  }
-
-  if (questionIndex[key] === undefined) {
-    questionIndex[key] = 0;
-  }
-
-  currentQuestion =
-    bank[questionIndex[key] % bank.length];
-
-  questionIndex[key]++;
-
-  const lang =
-    document.getElementById("language").value;
-
-  let text = currentQuestion.en;
-
-  if (lang === "Tamil") {
-    text = currentQuestion.ta;
-  }
-
-  if (lang === "Both") {
-    text += "\n\n" + currentQuestion.ta;
-  }
-
-  document.getElementById("questionText").textContent = text;
-
-  const options = document.getElementById("answerOptions");
-  options.innerHTML = "";
-
-  currentQuestion.oe.forEach((option,i) => {
-
-    let label = document.createElement("label");
-    label.style.display = "block";
-    label.style.padding = "9px";
-    label.style.margin = "5px";
-    label.style.background = "#eaf0f8";
-    label.style.borderRadius = "7px";
-
-    let radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "answer";
-    radio.value = i;
-
-    label.appendChild(radio);
-
-    let text = option;
-
-    if (lang === "Tamil") {
-      text = currentQuestion.ot[i];
-    }
-
-    if (lang === "Both") {
-      text += " / " + currentQuestion.ot[i];
-    }
-
-    label.appendChild(document.createTextNode(" " + text));
-    options.appendChild(label);
-  });
-
-  document.getElementById("quiz").style.display = "block";
-  document.getElementById("answerResult").textContent = "";
-}
-
-async function submitAnswer() {
-
-  if (!currentQuestion) return;
-
-  const selected = document.querySelector(
-    'input[name="answer"]:checked'
-  );
-
-  if (!selected) {
-    alert("Select an answer.");
-    return;
-  }
-
-  const correct =
-    Number(selected.value) === currentQuestion.correct;
-
-  document.getElementById("answerResult").textContent =
-    correct ? "Correct answer!" : "Incorrect answer!";
-
-  await sendESP32(correct ? "ANSWER:1" : "ANSWER:0");
-
-  if (correct) {
-    speak(
-      document.getElementById("voiceLanguage").value === "ta-IN"
-      ? "சரியான பதில்"
-      : "Correct answer"
-    );
-  }
-
-  document.getElementById("quiz").style.display = "none";
-}
-
-
-// =================================================
-// 16. BUTTON FUNCTIONS
-// =================================================
-
-window.connectESP32 = connectESP32;
-window.startClass = startClass;
-window.startCamera = startCamera;
-window.stopCamera = stopCamera;
-window.testVoice = testVoice;
-window.stopVoice = stopVoice;
-window.showQuestion = showQuestion;
-window.submitAnswer = submitAnswer;
-
+updateSummary(performance.now());
 </script>
 </body>
 </html>
