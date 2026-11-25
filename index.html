@@ -2,483 +2,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Smart Student Engagement Recovery System</title>
 <style>
-:root{font-family:Arial,sans-serif;color:#172033;background:#f3f6fb}
-*{box-sizing:border-box}body{margin:0;padding:18px}
-header{background:#142d4e;color:white;padding:18px;border-radius:14px;margin-bottom:16px}
+*{box-sizing:border-box}body{margin:0;padding:18px;font-family:Arial,sans-serif;background:#f3f6fb;color:#172033}
+header{background:#142d4e;color:white;padding:18px;border-radius:12px;margin-bottom:14px}
 h1{font-size:22px;margin:0 0 6px}h2{font-size:18px;margin:0 0 12px}
-.small{font-size:13px;color:#64748b}.panel{background:white;border:1px solid #dce4ef;border-radius:12px;padding:14px;margin-bottom:14px}
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
-label{font-size:13px;font-weight:bold;display:block;margin-bottom:5px}
+.panel{background:white;border:1px solid #dce4ef;border-radius:12px;padding:14px;margin-bottom:14px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{min-width:145px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:5px}
 select,input,button{padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px}
-button{background:#1d4ed8;color:white;border:0;cursor:pointer;font-weight:bold}
-button.secondary{background:#475569}button.warn{background:#b45309}button.danger{background:#b91c1c}
-button:disabled{opacity:.45;cursor:not-allowed}
-.field{min-width:145px}.stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}
-.stat{padding:13px;border-radius:10px;background:#eff6ff}.stat b{font-size:25px;display:block;margin-top:4px}
-.main{display:grid;grid-template-columns:minmax(300px,1.2fr) minmax(300px,1fr);gap:14px}
-.videoWrap{position:relative;width:100%;background:#0f172a;border-radius:10px;overflow:hidden;min-height:180px}
-video{display:block;width:100%;height:auto;min-height:180px;object-fit:contain}
-canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
-.grid{display:grid;grid-template-columns:repeat(7,minmax(30px,1fr));gap:5px}
-.seat{border:1px solid #cbd5e1;border-radius:7px;padding:8px 3px;text-align:center;font-size:11px;background:#ecfdf5;min-height:48px}
-.seat.talking{background:#fef3c7;border-color:#f59e0b}
-.seat.turned{background:#fee2e2;border-color:#ef4444}
-.seat.both{background:#fce7f3;border-color:#db2777}
-.seat.missing{background:#e2e8f0;color:#64748b}
-.rowLabel{font-size:12px;color:#64748b;margin:8px 0 4px}
-.log{max-height:220px;overflow:auto;font-size:13px;line-height:1.6}
-.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#e2e8f0;font-size:12px;margin:2px}
+button{background:#1d4ed8;color:white;border:0;font-weight:bold;cursor:pointer}button.secondary{background:#475569}
+button:disabled{opacity:.5}.small{font-size:13px;color:#64748b}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#eaf2ff;padding:14px;border-radius:10px}.stat b{display:block;font-size:26px;margin-top:5px}
+.main{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+.videoWrap{position:relative;background:#0f172a;border-radius:10px;overflow:hidden}
+video{width:100%;height:auto;display:block}canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.faceList{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px}
+.face{border:1px solid #cbd5e1;border-radius:9px;padding:10px;background:#ecfdf5;font-size:13px}
+.face.talking{background:#fef3c7;border-color:#f59e0b}.face.none{background:#e2e8f0}
+.log{max-height:260px;overflow:auto;font-size:13px;line-height:1.6}
 .notice{background:#fff7ed;border-left:4px solid #f59e0b;padding:10px;border-radius:6px;font-size:13px}
-@media(max-width:850px){.main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
-</style>
-</head>
+@media(max-width:800px){.main{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style></head>
 <body>
-<header>
-<h1>AI-Powered Smart Student Engagement Recovery System</h1>
-<div>40 Students · 6 Rows · Multi-face · Lip Movement · Seat Calibration</div>
-</header>
+<header><h1>AI-Powered Smart Student Engagement Recovery System</h1>
+<div>40 students · 6 rows · Multi-face lip movement detection · No seat calibration</div></header>
 
-<section class="panel">
-<h2>Teacher Settings</h2>
-<div class="controls">
-  <div class="field"><label>Grade</label><select id="grade">
-    <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-  </select></div>
-  <div class="field"><label>Subject</label><select id="subject">
-    <option>Science</option><option>Mathematics</option><option>English</option><option>Social Science</option>
-    <option>Physics</option><option>Chemistry</option><option>Biology</option><option>Computer Science</option><option>Tamil</option>
-  </select></div>
-  <div class="field"><label>Today's topic</label><input id="topic" value="Today's lesson"></div>
-  <div class="field"><label>Voice language</label><select id="language"><option value="en-IN">English</option><option value="ta-IN">தமிழ்</option></select></div>
-  <div class="field"><label>Seat match radius</label><select id="radius"><option value="0.07">Tight</option><option value="0.10" selected>Normal</option><option value="0.14">Wide</option></select></div>
-</div>
-</section>
+<section class="panel"><h2>Teacher Settings</h2><div class="controls">
+<div class="field"><label>Grade</label><select id="grade"><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
+<div class="field"><label>Subject</label><select id="subject"><option>Science</option><option>Mathematics</option><option>English</option><option>Social Science</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Computer Science</option><option>Tamil</option></select></div>
+<div class="field"><label>Today's topic</label><input id="topic" value="Today's lesson"></div>
+<div class="field"><label>Voice language</label><select id="language"><option value="en-IN">English</option><option value="ta-IN">தமிழ்</option></select></div>
+</div></section>
 
-<section class="panel">
-<h2>Camera and calibration</h2>
-<div class="controls">
-<button id="cameraBtn">Start camera</button>
-<button id="calibrateBtn" class="warn" disabled>Start seat calibration</button>
-<button id="cancelCalBtn" class="secondary" disabled>Cancel calibration</button>
-<button id="saveCalBtn" class="secondary">Save calibration</button>
-<button id="clearCalBtn" class="danger">Clear calibration</button>
-<button id="detectBtn" disabled>Start AI monitoring</button>
-</div>
-<p id="calibrationText" class="small">Start the camera. Then calibrate by clicking the centre of each student's face in seat order: R1S1 to R1S7, then R2S1, and so on. Recalibrate when the camera position or seating layout changes.</p>
-<div class="notice">Calibration is for the current seating arrangement. Because students may change seats, repeat calibration at the beginning of a new seating arrangement. Click the centre of each visible face in the order shown by the prompt.</div>
-<div class="videoWrap" style="margin-top:12px">
-<video id="video" autoplay playsinline muted></video>
-<canvas id="overlay"></canvas>
-</div>
-<div id="calibrationProgress" class="pill">Not calibrated</div>
+<section class="panel"><h2>Camera and AI monitoring</h2>
+<div class="controls"><button id="cameraBtn">Start camera and AI</button><button id="monitorBtn" class="secondary" disabled>Start monitoring</button></div>
+<p id="cameraStatus" class="small">Use Chrome or Edge. Allow webcam permission. No microphone or audio recording is used.</p>
+<div class="videoWrap"><video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas></div>
+<div class="notice" style="margin-top:10px">No seat calibration is used. The dashboard detects faces and shows temporary Face 1, Face 2, etc. Labels are not permanent student identities and may change if students move or leave the camera view.</div>
 </section>
 
 <section class="stats">
-<div class="stat">Faces currently detected<b id="faceCount">0</b></div>
+<div class="stat">Faces detected<b id="faceCount">0</b></div>
 <div class="stat">Possible talking<b id="talkCount">0</b></div>
-<div class="stat">Head turned<b id="turnCount">0</b></div>
-<div class="stat">Seats calibrated<b id="calCount">0/40</b></div>
+<div class="stat">Students in view<b id="viewCount">0</b></div>
 </section>
 
 <div class="main" style="margin-top:14px">
-<section class="panel">
-<h2>Live seat map</h2>
-<div id="seatMap"></div>
-<p class="small"><span class="pill">Green: no alert</span><span class="pill">Yellow: possible talking</span><span class="pill">Red: head turned</span><span class="pill">Pink: both</span><span class="pill">Grey: face not seen</span></p>
-</section>
-<section class="panel">
-<h2>Teacher alerts</h2>
-<div id="alerts" class="log">No alerts yet.</div>
+<section class="panel"><h2>Live face activity</h2><div id="faceList" class="faceList"><div class="face none">Waiting for camera…</div></div>
+<p class="small">Yellow = repeated mouth movement detected. Green = no talking pattern detected.</p></section>
+<section class="panel"><h2>Teacher alerts</h2><div id="alerts" class="log">No alerts yet.</div>
 <hr style="border:0;border-top:1px solid #e2e8f0;margin:12px 0">
-<h2>Bluetooth connection</h2>
-<div class="controls">
-<button id="bleBtn">Connect ESP32 BLE</button>
-<button id="startClassBtn" class="secondary">Start class</button>
-<button id="resetBtn" class="secondary">Reset score</button>
-</div>
-<p id="bleStatus" class="small">ESP32 not connected</p>
-<p class="small">ESP32 name: STUDENT_ENGAGEMENT</p>
-<h2 style="margin-top:16px">Class status</h2>
-<div id="classStatus" class="small">Waiting for camera and calibration.</div>
+<h2>ESP32 Bluetooth</h2><div class="controls"><button id="bleBtn">Connect ESP32 BLE</button><button id="startClassBtn" class="secondary">Start class</button><button id="resetBtn" class="secondary">Reset score</button></div>
+<p id="bleStatus" class="small">ESP32 not connected · STUDENT_ENGAGEMENT</p>
 <div id="dhtStatus" class="small">Temperature: -- °C | Humidity: -- %</div>
-</section>
-</div>
+</section></div>
 
-<section class="panel">
-<h2>How this version identifies seats</h2>
-<p class="small">The teacher clicks each student's face centre during calibration. The browser stores the 40 seat-centre coordinates in this laptop's local storage. During monitoring, each detected face is matched to the nearest unused calibrated seat within the selected radius. If students change seats, recalibrate. This is seat-position mapping, not biometric identity recognition.</p>
-<p class="small">Lip movement is estimated visually from mouth landmarks. It reports “Possible Talking”; it does not record audio or prove that a student is speaking.</p>
+<section class="panel"><h2>Important limitation</h2>
+<p class="small">Lip movement is estimated from MediaPipe mouth landmarks over time. The system reports “Possible Talking”; it cannot prove speech, identify the speaker by name, or reliably distinguish talking from chewing/yawning. With one front camera, far-away faces may be too small for reliable lip analysis. Performance depends on camera resolution, lighting and laptop speed.</p>
 </section>
 
 <script type="module">
-import { FaceLandmarker, FilesetResolver } from
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+const SERVICE_UUID="12345678-1234-1234-1234-123456789000";
+const CHARACTERISTIC_UUID="12345678-1234-1234-1234-123456789001";
+const $=id=>document.getElementById(id);
+const video=$("video"),canvas=$("overlay"),ctx=canvas.getContext("2d");
+let landmarker=null,stream=null,monitoring=false,raf=0,lastVideoTime=-1,lastFrame=0;
+let tracks=[],nextTrackId=1,faceCount=0,bleDevice=null,bleChar=null;
+const speechQueue=[];let speaking=false;
 
-const SERVICE_UUID = "12345678-1234-1234-1234-123456789000";
-const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-123456789001";
-const seatIds = [];
-[7,7,7,7,6,6].forEach((count, r) => {
-  for (let s=1; s<=count; s++) seatIds.push(`R${r+1}S${s}`);
-});
+function log(msg){const d=document.createElement("div");d.textContent=new Date().toLocaleTimeString()+" — "+msg;$("alerts").prepend(d);}
+function say(msg){speechQueue.push(msg);if(!speaking)nextSpeech();}
+function nextSpeech(){if(!speechQueue.length){speaking=false;return;}speaking=true;const u=new SpeechSynthesisUtterance(speechQueue.shift());u.lang=$("language").value;u.rate=.95;u.onend=u.onerror=()=>{speaking=false;nextSpeech();};speechSynthesis.speak(u);}
+async function sendBLE(msg){if(!bleChar)return;try{const b=new TextEncoder().encode(msg);if(bleChar.writeValueWithoutResponse)await bleChar.writeValueWithoutResponse(b);else await bleChar.writeValue(b);}catch(e){$("bleStatus").textContent="BLE send error: "+e.message;}}
 
-const $ = id => document.getElementById(id);
-const video = $("video"), canvas = $("overlay"), ctx = canvas.getContext("2d");
-let stream = null, landmarker = null, monitoring = false, rafId = null;
-let calibrationMode = false, calibrationIndex = 0;
-let calibration = JSON.parse(localStorage.getItem("seatCalibration40") || "{}");
-let device = null, bleServer = null, bleCharacteristic = null;
-let lastVideoTime = -1, lastProcess = 0;
-let faceCountNow = 0;
-const seatState = {};
-const speechQueue = [];
-let speaking = false;
-
-for (const id of seatIds) seatState[id] = {
-  lastSeen: 0, direction: "forward", turnedSince: 0,
-  mouthOpen: false, transitions: [], talkingUntil: 0,
-  isTalking: false, isTurned: false, lastAlert: 0
-};
-
-function buildSeatMap(){
-  const host = $("seatMap"); host.innerHTML = "";
-  let index = 0;
-  for(let r=1;r<=6;r++){
-    const label=document.createElement("div");
-    label.className="rowLabel"; label.textContent=`ROW ${r}`; host.appendChild(label);
-    const row=document.createElement("div"); row.className="grid";
-    const n=[7,7,7,7,6,6][r-1];
-    for(let s=1;s<=n;s++){
-      const id=`R${r}S${s}`;
-      const cell=document.createElement("div");
-      cell.className="seat"; cell.id="seat_"+id;
-      cell.textContent=id+"\\nWaiting";
-      row.appendChild(cell); index++;
-    }
-    host.appendChild(row);
-  }
+function ratio(face){
+ const a=face[13],b=face[14],l=face[61],r=face[291];
+ const vertical=Math.hypot(a.x-b.x,a.y-b.y),width=Math.hypot(l.x-r.x,l.y-r.y);
+ return width>.0001?vertical/width:0;
 }
-buildSeatMap();
+function center(face){return {x:face[1].x,y:face[1].y};}
 
-function updateSeatUI(id, now){
-  const st=seatState[id], el=$("seat_"+id);
-  if(!el) return;
-  const seen = now - st.lastSeen < 1800;
-  el.className="seat";
-  let label="No face";
-  if(seen){
-    if(st.isTalking && st.isTurned){el.classList.add("both");label="Talking + turned";}
-    else if(st.isTalking){el.classList.add("talking");label="Possible talking";}
-    else if(st.isTurned){el.classList.add("turned");label="Head turned";}
-    else label="Forward";
-  } else el.classList.add("missing");
-  el.textContent=id+"\\n"+label;
+// Lightweight nearest-centre tracking for temporary face labels (not identity recognition).
+function updateTracks(faces,now){
+ const points=faces.map(center),used=new Set();
+ for(const t of tracks){t.matched=false;}
+ for(let i=0;i<faces.length;i++){
+   let best=null,bestD=.13;
+   for(const t of tracks){if(used.has(t.id))continue;const d=Math.hypot(points[i].x-t.x,points[i].y-t.y);if(d<bestD){best=t;bestD=d;}}
+   if(!best){best={id:nextTrackId++,x:points[i].x,y:points[i].y,open:false,transitions:[],talkUntil:0,lastAlert:0};tracks.push(best);}
+   used.add(best.id);best.matched=true;best.x=points[i].x;best.y=points[i].y;best.lastSeen=now;
+   const m=ratio(faces[i]);
+   if(!best.open&&m>.16){best.open=true;best.transitions.push(now);}
+   else if(best.open&&m<.10){best.open=false;best.transitions.push(now);}
+   best.transitions=best.transitions.filter(t=>now-t<2600);
+   if(best.transitions.length>=4)best.talkUntil=now+1800;
+   best.talking=now<best.talkUntil;
+   if(best.talking&&now-best.lastAlert>10000){best.lastAlert=now;log(`Face ${best.id}: possible talking`);say(`Possible talking detected, face ${best.id}`);sendBLE("SEAT_TALK:FACE"+best.id);}
+ }
+ tracks=tracks.filter(t=>now-(t.lastSeen||0)<2200);
+ return faces.map((f,i)=>{let t=tracks.find(q=>q.matched&&Math.hypot(q.x-points[i].x,q.y-points[i].y)<.001);return {face:f,track:t};});
 }
-
-function addLog(message){
-  const line=document.createElement("div");
-  line.textContent=`${new Date().toLocaleTimeString()} — ${message}`;
-  $("alerts").prepend(line);
+function render(items,now){
+ canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.clearRect(0,0,canvas.width,canvas.height);
+ const active=items.filter(x=>x.track);
+ for(const item of active){
+   const f=item.face,t=item.track;
+   let minX=1,minY=1,maxX=0,maxY=0;
+   for(const p of f){minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x);maxY=Math.max(maxY,p.y);}
+   ctx.strokeStyle=t.talking?"#f59e0b":"#22c55e";ctx.lineWidth=3;
+   ctx.strokeRect(minX*canvas.width,minY*canvas.height,(maxX-minX)*canvas.width,(maxY-minY)*canvas.height);
+   ctx.fillStyle=t.talking?"#f59e0b":"#22c55e";ctx.font="bold 18px Arial";
+   ctx.fillText(`Face ${t.id}${t.talking?" - TALKING?":""}`,minX*canvas.width,Math.max(22,minY*canvas.height-8));
+ }
+ $("faceCount").textContent=items.length;$("viewCount").textContent=items.length;
+ $("talkCount").textContent=active.filter(x=>x.track.talking).length;
+ const host=$("faceList");host.innerHTML="";
+ if(!active.length){host.innerHTML='<div class="face none">No face detected</div>';return;}
+ for(const {track:t} of active){
+   const d=document.createElement("div");d.className="face"+(t.talking?" talking":"");
+   d.textContent=`Face ${t.id} — ${t.talking?"Possible Talking":"No repeated lip movement"}`;host.appendChild(d);
+ }
 }
-
-function speak(text){
-  speechQueue.push(text);
-  if(!speaking) speakNext();
+function loop(){
+ if(!monitoring||!landmarker)return;
+ const now=performance.now();
+ if(video.currentTime!==lastVideoTime&&now-lastFrame>100){
+  lastVideoTime=video.currentTime;lastFrame=now;
+  const result=landmarker.detectForVideo(video,now);
+  const faces=result.faceLandmarks||[];
+  const items=updateTracks(faces,now);
+  render(items,now);
+ }
+ raf=requestAnimationFrame(loop);
 }
-function speakNext(){
-  if(!speechQueue.length){speaking=false;return;}
-  speaking=true;
-  const utter=new SpeechSynthesisUtterance(speechQueue.shift());
-  utter.lang=$("language").value;
-  utter.rate=0.95;
-  utter.onend=()=>{speaking=false;speakNext();};
-  utter.onerror=()=>{speaking=false;speakNext();};
-  speechSynthesis.speak(utter);
-}
-
-async function sendBLE(message){
-  if(!bleCharacteristic) return;
-  try{
-    const data=new TextEncoder().encode(message);
-    if(bleCharacteristic.writeValueWithoutResponse){
-      await bleCharacteristic.writeValueWithoutResponse(data);
-    }else{
-      await bleCharacteristic.writeValue(data);
-    }
-  }catch(e){ $("bleStatus").textContent="BLE send error: "+e.message; }
-}
-
-function updateSummary(now){
-  const talking=seatIds.filter(id=>seatState[id].isTalking && now-seatState[id].lastSeen<1800);
-  const turned=seatIds.filter(id=>seatState[id].isTurned && now-seatState[id].lastSeen<1800);
-  $("talkCount").textContent=talking.length;
-  $("turnCount").textContent=turned.length;
-  $("faceCount").textContent=faceCountNow;
-  $("calCount").textContent=Object.keys(calibration).length+"/40";
-  for(const id of seatIds) updateSeatUI(id,now);
-  $("classStatus").textContent =
-    `Grade ${$("grade").value} · ${$("subject").value} · ${$("topic").value} · ${$("language").value}`;
-}
-
 async function startCamera(){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},
-      audio:false
-    });
-    video.srcObject=stream;
-    await video.play();
-    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-    $("cameraBtn").textContent="Camera running";
-    $("calibrateBtn").disabled=false;
-    $("detectBtn").disabled=false;
-    $("bleStatus").textContent="Camera ready. Connect ESP32 separately.";
-    const vision=await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-    );
-    landmarker=await FaceLandmarker.createFromOptions(vision,{
-      baseOptions:{
-        modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate:"CPU"
-      },
-      runningMode:"VIDEO",
-      numFaces:40,
-      minFaceDetectionConfidence:0.45,
-      minFacePresenceConfidence:0.45,
-      minTrackingConfidence:0.45
-    });
-    $("calibrationText").textContent="Camera and AI ready. Start seat calibration and click face centres in the displayed seat order.";
-  }catch(e){
-    alert("Camera/AI start failed: "+e.message+"\\nUse Chrome or Edge and allow camera permission. Open this page through localhost or HTTPS.");
-  }
-}
-
-function startCalibration(){
-  if(!video.videoWidth){alert("Start camera first.");return;}
-  calibration={}; calibrationIndex=0; calibrationMode=true;
-  $("cancelCalBtn").disabled=false;
-  $("calibrateBtn").disabled=true;
-  updateCalibrationText();
-  drawOverlay();
-}
-function updateCalibrationText(){
-  if(calibrationIndex>=seatIds.length){
-    $("calibrationText").textContent="All 40 seat centres captured. Click Save calibration.";
-    calibrationMode=false;
-    $("cancelCalBtn").disabled=true;
-    $("calibrateBtn").disabled=false;
-    return;
-  }
-  $("calibrationText").textContent=`Calibration ${calibrationIndex+1}/40: Ask the student at ${seatIds[calibrationIndex]} to remain seated, then click the centre of that student's face in the camera image.`;
-  $("calibrationProgress").textContent=`Next seat: ${seatIds[calibrationIndex]} (${calibrationIndex}/40 completed)`;
-}
-function cancelCalibration(){
-  calibrationMode=false; calibrationIndex=0;
-  $("cancelCalBtn").disabled=true; $("calibrateBtn").disabled=false;
-  $("calibrationText").textContent="Calibration cancelled. Existing saved calibration remains unchanged until you save a new one.";
-  drawOverlay();
-}
-canvas.addEventListener("click",e=>{
-  if(!calibrationMode)return;
-  const rect=canvas.getBoundingClientRect();
-  const x=(e.clientX-rect.left)/rect.width;
-  const y=(e.clientY-rect.top)/rect.height;
-  const id=seatIds[calibrationIndex];
-  calibration[id]={x,y};
-  calibrationIndex++;
-  updateCalibrationText(); drawOverlay();
-});
-function drawOverlay(){
-  if(!canvas.width)return;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  for(const [id,p] of Object.entries(calibration)){
-    const x=p.x*canvas.width,y=p.y*canvas.height;
-    ctx.beginPath();ctx.arc(x,y,Math.max(7,canvas.width/100),0,Math.PI*2);
-    ctx.strokeStyle="#22c55e";ctx.lineWidth=3;ctx.stroke();
-    ctx.fillStyle="#22c55e";ctx.fill();
-    ctx.fillStyle="#ffffff";ctx.font=`${Math.max(14,canvas.width/65)}px Arial`;
-    ctx.fillText(id,x+8,y-8);
-  }
-  if(calibrationMode && calibrationIndex<40){
-    ctx.fillStyle="#facc15";ctx.font=`bold ${Math.max(18,canvas.width/45)}px Arial`;
-    ctx.fillText("CLICK "+seatIds[calibrationIndex],15,35);
-  }
-}
-function saveCalibration(){
-  if(Object.keys(calibration).length!==40){
-    alert(`Calibration incomplete: ${Object.keys(calibration).length}/40. Capture all 40 seat centres first.`);return;
-  }
-  localStorage.setItem("seatCalibration40",JSON.stringify(calibration));
-  $("calibrationProgress").textContent="Calibration saved (40/40)";
-  addLog("Seat calibration saved on this laptop.");
-  drawOverlay();
-}
-function clearCalibration(){
-  if(!confirm("Clear all saved seat calibration points?"))return;
-  calibration={};localStorage.removeItem("seatCalibration40");
-  $("calCount").textContent="0/40";$("calibrationProgress").textContent="Not calibrated";
-  drawOverlay();
-}
-
-function getDirection(face){
-  const nose=face[1], leftEye=face[33], rightEye=face[263];
-  const mid=(leftEye.x+rightEye.x)/2;
-  const width=Math.abs(rightEye.x-leftEye.x);
-  if(width<0.0001)return "forward";
-  const offset=(nose.x-mid)/width;
-  if(offset>0.13)return "right";
-  if(offset< -0.13)return "left";
-  return "forward";
-}
-function mouthRatio(face){
-  const up=face[13],low=face[14],left=face[61],right=face[291];
-  const vertical=Math.hypot(up.x-low.x,up.y-low.y);
-  const horizontal=Math.hypot(left.x-right.x,left.y-right.y);
-  return horizontal>0.0001?vertical/horizontal:0;
-}
-function updateLipState(id,face,now){
-  const st=seatState[id], ratio=mouthRatio(face);
-  // Hysteresis reduces rapid switching around one threshold.
-  if(!st.mouthOpen && ratio>0.16){
-    st.mouthOpen=true;st.transitions.push(now);
-  }else if(st.mouthOpen && ratio<0.10){
-    st.mouthOpen=false;st.transitions.push(now);
-  }
-  st.transitions=st.transitions.filter(t=>now-t<2600);
-  const transitions=st.transitions.length;
-  if(transitions>=4){
-    st.talkingUntil=now+1800;
-  }
-  st.isTalking=now<st.talkingUntil;
-}
-function updateHeadState(id,face,now){
-  const st=seatState[id],direction=getDirection(face);
-  st.direction=direction;
-  if(direction==="forward"){
-    st.turnedSince=0;
-    st.isTurned=false;
-  }else{
-    if(!st.turnedSince)st.turnedSince=now;
-    st.isTurned=(now-st.turnedSince)>=1800;
-  }
-}
-function assignFacesToSeats(faces,now){
-  const candidates=[];
-  const radius=Number($("radius").value);
-  for(let fi=0;fi<faces.length;fi++){
-    const nose=faces[fi][1];
-    for(const id of seatIds){
-      const p=calibration[id];if(!p)continue;
-      const d=Math.hypot(nose.x-p.x,nose.y-p.y);
-      if(d<=radius)candidates.push({fi,id,d});
-    }
-  }
-  candidates.sort((a,b)=>a.d-b.d);
-  const usedFaces=new Set(),usedSeats=new Set(),assignments=[];
-  for(const c of candidates){
-    if(usedFaces.has(c.fi)||usedSeats.has(c.id))continue;
-    usedFaces.add(c.fi);usedSeats.add(c.id);
-    assignments.push(c);
-  }
-  for(const a of assignments){
-    const id=a.id,face=faces[a.fi],st=seatState[id];
-    st.lastSeen=now;
-    updateLipState(id,face,now);
-    updateHeadState(id,face,now);
-    const isNewAlert=(st.isTalking||st.isTurned) && now-st.lastAlert>12000;
-    if(isNewAlert){
-      st.lastAlert=now;
-      if(st.isTalking && st.isTurned){
-        const msg=`${id}: possible talking and head turned`;
-        addLog(msg);speak(`${id.replace("R","Row ").replace("S"," seat ")}. Possible talking and head turned.`);
-        sendBLE("SEAT_TALK:"+id);sendBLE("SEAT_ALERT:"+id);
-      }else if(st.isTalking){
-        const msg=`${id}: possible talking`;
-        addLog(msg);speak(`${id.replace("R","Row ").replace("S"," seat ")}. Possible talking.`);
-        sendBLE("SEAT_TALK:"+id);
-      }else if(st.isTurned){
-        const msg=`${id}: head turned ${st.direction}`;
-        addLog(msg);speak(`${id.replace("R","Row ").replace("S"," seat ")}. Please face forward.`);
-        sendBLE("SEAT_ALERT:"+id);
-      }
-    }
-  }
-}
-function processFrame(){
-  if(!monitoring||!landmarker)return;
-  const now=performance.now();
-  if(video.currentTime!==lastVideoTime && now-lastProcess>130){
-    lastVideoTime=video.currentTime;lastProcess=now;
-    const result=landmarker.detectForVideo(video,now);
-    const faces=result.faceLandmarks||[];
-    faceCountNow=faces.length;
-    if(Object.keys(calibration).length===40){
-      assignFacesToSeats(faces,now);
-    }
-    updateSummary(now);drawOverlay();
-  }
-  rafId=requestAnimationFrame(processFrame);
-}
-function startMonitoring(){
-  if(!landmarker){alert("Start camera and wait for AI to load.");return;}
-  if(Object.keys(calibration).length!==40){
-    alert("Please calibrate all 40 seat positions first.");return;
-  }
-  monitoring=true;$("detectBtn").textContent="Stop AI monitoring";
-  addLog("AI monitoring started.");sendBLE("START");
-  processFrame();
-}
-function stopMonitoring(){
-  monitoring=false;if(rafId)cancelAnimationFrame(rafId);
-  $("detectBtn").textContent="Start AI monitoring";
-  faceCountNow=0;updateSummary(performance.now());
-  addLog("AI monitoring stopped.");sendBLE("CLASS_NORMAL");
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});
+  video.srcObject=stream;await video.play();
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  $("cameraStatus").textContent="Camera started. Loading multi-face AI model…";
+  const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  landmarker=await FaceLandmarker.createFromOptions(vision,{
+   baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},
+   runningMode:"VIDEO",numFaces:40,minFaceDetectionConfidence:.45,minFacePresenceConfidence:.45,minTrackingConfidence:.45
+  });
+  $("monitorBtn").disabled=false;$("cameraStatus").textContent="AI ready. Press Start monitoring.";
+ }catch(e){$("cameraStatus").textContent="Camera/AI error: "+e.message+" — allow camera permission and use localhost/HTTPS in Chrome or Edge.";}
 }
 async function connectBLE(){
-  try{
-    device=await navigator.bluetooth.requestDevice({
-      filters:[{name:"STUDENT_ENGAGEMENT"}],
-      optionalServices:[SERVICE_UUID]
-    });
-    device.addEventListener("gattserverdisconnected",()=>{
-      bleCharacteristic=null;$("bleStatus").textContent="ESP32 disconnected";
-    });
-    bleServer=await device.gatt.connect();
-    const service=await bleServer.getPrimaryService(SERVICE_UUID);
-    bleCharacteristic=await service.getCharacteristic(CHARACTERISTIC_UUID);
-    if(bleCharacteristic.startNotifications){
-      await bleCharacteristic.startNotifications();
-      bleCharacteristic.addEventListener("characteristicvaluechanged",event=>{
-        const value=new TextDecoder().decode(event.target.value);
-        if(value.startsWith("STATUS:")){
-          const p=value.split(":");
-          $("dhtStatus").textContent=`Temperature: ${p[3]||"--"} °C | Humidity: ${p[4]||"--"} % | Score: ${p[1]||0}`;
-        }
-      });
-    }
-    $("bleStatus").textContent="Connected to "+device.name;
-    addLog("ESP32 BLE connected.");
-  }catch(e){$("bleStatus").textContent="BLE connection failed: "+e.message;}
+ try{
+  bleDevice=await navigator.bluetooth.requestDevice({filters:[{name:"STUDENT_ENGAGEMENT"}],optionalServices:[SERVICE_UUID]});
+  const server=await bleDevice.gatt.connect();const service=await server.getPrimaryService(SERVICE_UUID);
+  bleChar=await service.getCharacteristic(CHARACTERISTIC_UUID);
+  if(bleChar.startNotifications){await bleChar.startNotifications();bleChar.addEventListener("characteristicvaluechanged",e=>{
+   const msg=new TextDecoder().decode(e.target.value);
+   if(msg.startsWith("STATUS:")){const p=msg.split(":");$("dhtStatus").textContent=`Temperature: ${p[3]||"--"} °C | Humidity: ${p[4]||"--"} % | Score: ${p[1]||"0"}`;}
+  });}
+  $("bleStatus").textContent="Connected: "+bleDevice.name;log("ESP32 BLE connected");
+ }catch(e){$("bleStatus").textContent="BLE error: "+e.message;}
 }
-
-$("cameraBtn").addEventListener("click",startCamera);
-$("calibrateBtn").addEventListener("click",startCalibration);
-$("cancelCalBtn").addEventListener("click",cancelCalibration);
-$("saveCalBtn").addEventListener("click",saveCalibration);
-$("clearCalBtn").addEventListener("click",clearCalibration);
-$("detectBtn").addEventListener("click",()=>monitoring?stopMonitoring():startMonitoring());
-$("bleBtn").addEventListener("click",connectBLE);
-$("startClassBtn").addEventListener("click",()=>sendBLE("START"));
-$("resetBtn").addEventListener("click",()=>sendBLE("RESET"));
-
-window.addEventListener("resize",drawOverlay);
-if(Object.keys(calibration).length) {
-  $("calibrationProgress").textContent=`Saved calibration: ${Object.keys(calibration).length}/40`;
-}
-updateSummary(performance.now());
-</script>
-</body>
-</html>
+$("cameraBtn").onclick=startCamera;
+$("monitorBtn").onclick=()=>{if(!monitoring){monitoring=true;$("monitorBtn").textContent="Stop monitoring";sendBLE("START");log("Lip movement monitoring started");loop();}else{monitoring=false;cancelAnimationFrame(raf);$("monitorBtn").textContent="Start monitoring";log("Monitoring stopped");sendBLE("CLASS_NORMAL");}};
+$("bleBtn").onclick=connectBLE;
+$("startClassBtn").onclick=()=>sendBLE("START");
+$("resetBtn").onclick=()=>sendBLE("RESET");
+</script></body></html>
